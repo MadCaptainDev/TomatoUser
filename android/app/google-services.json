@@ -1,0 +1,86 @@
+{
+  "project_info": {
+    "project_number": "208343184824",
+    "project_id": "tomato-72760",
+    "storage_bucket": "tomato-72760.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208343184824:android:36d5a3ccb693a99f498b4d",
+        "android_client_info": {
+          "package_name": "com.chakra.tomatouser"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBowNjpSwcWsjudefbBewAtGbA399PECo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208343184824:android:62d4b1d251b9f21a498b4d",
+        "android_client_info": {
+          "package_name": "com.tomato.partner"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBowNjpSwcWsjudefbBewAtGbA399PECo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208343184824:android:3196c87ef56d3b66498b4d",
+        "android_client_info": {
+          "package_name": "com.tomato.store"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBowNjpSwcWsjudefbBewAtGbA399PECo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:208343184824:android:4933672d3814d51d498b4d",
+        "android_client_info": {
+          "package_name": "com.tomato.user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBowNjpSwcWsjudefbBewAtGbA399PECo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
