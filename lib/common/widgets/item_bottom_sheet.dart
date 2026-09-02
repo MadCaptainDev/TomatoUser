@@ -2,6 +2,7 @@ import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
 import 'package:sixam_mart/common/widgets/custom_tool_tip_widget.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
+import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/favourite/controllers/favourite_controller.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
@@ -461,6 +462,14 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                                     ? 'out_of_stock'.tr : widget.isCampaign ? 'order_now'.tr
                                     : (widget.cart != null || itemController.cartIndex != -1) ? 'update_in_cart'.tr : 'add_to_cart'.tr,
                                 onPressed: (Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && stock! <= 0) ? null : () async {
+                                  if (widget.inStorePage) {
+                                    final store = Get.find<StoreController>().store;
+                                    if (store != null && (store.open != 1 || !Get.find<StoreController>().isStoreOpenNow(store.active!, store.schedules))) {
+                                      showCustomSnackBar(Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText!
+                                          ? 'restaurant_is_closed'.tr : 'store_is_closed'.tr, getXSnackBar: true);
+                                      return;
+                                    }
+                                  }
                                   String? invalid;
                                   if(_newVariation) {
                                     for(int index=0; index<widget.item!.foodVariations!.length; index++) {

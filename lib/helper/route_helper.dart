@@ -182,7 +182,7 @@ class RouteHelper {
     return '$forgotPassword?page=${fromSocialLogin ? 'social-login' : 'forgot-password'}&data=${fromSocialLogin ? data : 'null'}';
   }
   static String getResetPasswordRoute(String? phone, String token, String page) => '$resetPassword?phone=$phone&token=$token&page=$page';
-  static String getSearchRoute({String? queryText}) => '$search?query=${queryText ?? ''}';
+  static String getSearchRoute({String? queryText, bool global = false}) => '$search?query=${queryText ?? ''}&global=$global';
   static String getStoreRoute({required int? id, required String page}) {
     return '$store?id=$id&page=$page';
   }
@@ -323,7 +323,9 @@ class RouteHelper {
         session = utf8.decode(base64Url.decode(Get.parameters['session'] ?? ''));
       }
       return VerificationScreen(
-        number: Get.parameters['number'], fromSignUp: Get.parameters['page'] == signUp, token: Get.parameters['token'],
+        number: Get.parameters['number'], fromSignUp: Get.parameters['page'] == signUp,
+        isOtpLogin: Get.parameters['page'] == signIn,
+        token: Get.parameters['token'],
         password: data, firebaseSession: session,
       );
     }),
@@ -355,7 +357,10 @@ class RouteHelper {
     GetPage(name: resetPassword, page: () => NewPassScreen(
       resetToken: Get.parameters['token'], number: Get.parameters['phone'], fromPasswordChange: Get.parameters['page'] == 'password-change',
     )),
-    GetPage(name: search, page: () => getRoute(SearchScreen(queryText: Get.parameters['query']))),
+    GetPage(name: search, page: () => getRoute(SearchScreen(
+      queryText: Get.parameters['query'],
+      globalSearch: Get.parameters['global'] == 'true',
+    ))),
     GetPage(name: store, page: () {
       return getRoute(Get.arguments ?? StoreScreen(
         store: Store(id: Get.parameters['id'] != 'null' && Get.parameters['id'] != null ? int.parse(Get.parameters['id']!) : null),

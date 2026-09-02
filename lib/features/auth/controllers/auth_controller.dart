@@ -10,6 +10,7 @@ import 'package:sixam_mart/features/profile/controllers/profile_controller.dart'
 import 'package:sixam_mart/features/auth/domain/models/social_log_in_body.dart';
 import 'package:sixam_mart/features/auth/domain/models/signup_body_model.dart';
 import 'package:sixam_mart/features/auth/domain/services/auth_service_interface.dart';
+import 'package:sixam_mart/features/verification/controllers/verification_controller.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 
 class AuthController extends GetxController implements GetxService {
@@ -68,6 +69,23 @@ class AuthController extends GetxController implements GetxService {
     _isLoading = false;
     update();
     return responseModel;
+  }
+
+  Future<void> sendOtpLogin(String phoneNumber) async {
+    _isLoading = true;
+    update();
+    if (Get.find<SplashController>().configModel!.firebaseOtpVerification!) {
+      await firebaseVerifyPhoneNumber(phoneNumber, '', isOtpLogin: true);
+    } else {
+      ResponseModel status = await Get.find<VerificationController>().forgetPassword(phoneNumber);
+      _isLoading = false;
+      update();
+      if (status.isSuccess) {
+        Get.toNamed(RouteHelper.getVerificationRoute(phoneNumber, '', RouteHelper.signIn, ''));
+      } else {
+        showCustomSnackBar(status.message);
+      }
+    }
   }
 
   Future<ResponseModel> guestLogin() async {
@@ -199,7 +217,7 @@ class AuthController extends GetxController implements GetxService {
     return await authServiceInterface.saveDeviceToken();
   }
 
-  Future<void> firebaseVerifyPhoneNumber(String phoneNumber, String? token, {bool fromSignUp = true, bool canRoute = true})async {
+  Future<void> firebaseVerifyPhoneNumber(String phoneNumber, String? token, {bool fromSignUp = true, bool isOtpLogin = false, bool canRoute = true})async {
     _isLoading = true;
     update();
 
@@ -223,7 +241,8 @@ class AuthController extends GetxController implements GetxService {
         update();
 
         if(canRoute) {
-          Get.toNamed(RouteHelper.getVerificationRoute(phoneNumber, token, fromSignUp ? RouteHelper.signUp : RouteHelper.forgotPassword, '', session: vId));
+          final String page = isOtpLogin ? RouteHelper.signIn : (fromSignUp ? RouteHelper.signUp : RouteHelper.forgotPassword);
+          Get.toNamed(RouteHelper.getVerificationRoute(phoneNumber, token, page, '', session: vId));
         }
       },
       codeAutoRetrievalTimeout: (String verificationId) {},

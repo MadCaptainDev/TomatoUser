@@ -23,11 +23,33 @@ class VerificationService implements VerificationServiceInterface {
   Future<ResponseModel> verifyPhone(String? phone, String otp, String? token) async {
     ResponseModel responseModel = await verificationRepoInterface.verifyPhone(phone, otp);
     if(responseModel.isSuccess) {
-      authRepoInterface.saveUserToken(token!);
+      await _persistLoginToken(token, responseModel);
+    }
+    return responseModel;
+  }
+
+  @override
+  Future<ResponseModel> verifyOtpLogin(String? phone, String otp, String? token) async {
+    ResponseModel responseModel = await verificationRepoInterface.verifyPhone(phone, otp);
+    if(!responseModel.isSuccess) {
+      responseModel = await verificationRepoInterface.verifyToken(phone, otp);
+    }
+    if(responseModel.isSuccess) {
+      await _persistLoginToken(token, responseModel);
+    }
+    return responseModel;
+  }
+
+  Future<void> _persistLoginToken(String? passedToken, ResponseModel responseModel) async {
+    String? authToken = passedToken;
+    if(authToken == null || authToken.isEmpty) {
+      authToken = responseModel.message;
+    }
+    if(authToken != null && authToken.isNotEmpty) {
+      authRepoInterface.saveUserToken(authToken);
       await authRepoInterface.updateToken();
       authRepoInterface.clearSharedPrefGuestId();
     }
-    return responseModel;
   }
 
   @override
@@ -36,12 +58,10 @@ class VerificationService implements VerificationServiceInterface {
   }
 
   @override
-  Future<ResponseModel> verifyFirebaseOtp({required String phoneNumber, required String session, required String otp, required bool isSignUpPage, required String? token}) async {
-    ResponseModel responseModel = await verificationRepoInterface.verifyFirebaseOtp(phoneNumber: phoneNumber, session: session, otp: otp, isSignUpPage: isSignUpPage);
-    if(responseModel.isSuccess && isSignUpPage) {
-      authRepoInterface.saveUserToken(token!);
-      await authRepoInterface.updateToken();
-      authRepoInterface.clearSharedPrefGuestId();
+  Future<ResponseModel> verifyFirebaseOtp({required String phoneNumber, required String session, required String otp, required bool isSignUpPage, required String? token, bool isOtpLogin = false}) async {
+    ResponseModel responseModel = await verificationRepoInterface.verifyFirebaseOtp(phoneNumber: phoneNumber, session: session, otp: otp, isSignUpPage: isSignUpPage || isOtpLogin);
+    if(responseModel.isSuccess && (isSignUpPage || isOtpLogin)) {
+      await _persistLoginToken(token, responseModel);
     }
     return responseModel;
   }

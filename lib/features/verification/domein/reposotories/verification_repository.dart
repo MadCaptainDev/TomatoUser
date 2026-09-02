@@ -41,7 +41,7 @@ class VerificationRepository implements VerificationRepositoryInterface{
   Future<ResponseModel> verifyPhone(String? phone, String otp) async {
     Response response = await apiClient.postData(AppConstants.verifyPhoneUri, {"phone": phone, "otp": otp});
     if (response.statusCode == 200) {
-      return ResponseModel(true, response.body["message"]);
+      return ResponseModel(true, response.body['token'] ?? response.body["message"]);
     } else {
       return ResponseModel(false, response.statusText);
     }
@@ -57,7 +57,7 @@ class VerificationRepository implements VerificationRepositoryInterface{
         },
     );
     if (response.statusCode == 200) {
-      return ResponseModel(true, response.body["message"]);
+      return ResponseModel(true, response.body['token'] ?? response.body["message"]);
     } else {
       return ResponseModel(false, response.statusText);
     }
@@ -67,7 +67,7 @@ class VerificationRepository implements VerificationRepositoryInterface{
   Future<ResponseModel> verifyToken(String? phone, String token) async {
     Response response = await apiClient.postData(AppConstants.verifyTokenUri, {"phone": phone, "reset_token": token});
     if (response.statusCode == 200) {
-      return ResponseModel(true, response.body["message"]);
+      return ResponseModel(true, response.body['token'] ?? response.body["message"]);
     } else {
       return ResponseModel(false, response.statusText);
     }

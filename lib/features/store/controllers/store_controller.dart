@@ -252,16 +252,8 @@ class StoreController extends GetxController implements GetxService {
     Response response = await storeServiceInterface.getFeaturedStoreList();
     if (response.statusCode == 200) {
       _featuredStoreList = [];
-      List<Modules> moduleList = [];
-      moduleList.addAll(storeServiceInterface.moduleList());
       response.body['stores'].forEach((store) {
-        for (var module in moduleList) {
-          if(module.id == Store.fromJson(store).moduleId){
-            if(module.pivot!.zoneId == Store.fromJson(store).zoneId){
-              _featuredStoreList!.add(Store.fromJson(store));
-            }
-          }
-        }
+        _featuredStoreList!.add(Store.fromJson(store));
       });
     }
     update();

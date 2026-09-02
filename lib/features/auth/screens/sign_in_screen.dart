@@ -145,6 +145,7 @@ class SignInScreenState extends State<SignInScreen> {
                   )
                 : null,
             child: GetBuilder<AuthController>(builder: (authController) {
+              final bool isOtpLogin = Get.find<SplashController>().configModel!.customerVerification!;
               return Center(
                 child: SingleChildScrollView(
                   child: Stack(
@@ -197,7 +198,7 @@ class SignInScreenState extends State<SignInScreen> {
                                   controller: _phoneController,
                                   focusNode: _phoneFocus,
                                   showLabelText: false,
-                                  nextFocus: _passwordFocus,
+                                  nextFocus: isOtpLogin ? null : _passwordFocus,
                                   inputType: TextInputType.phone,
                                   isPhone: true,
                                   onCountryChanged: (CountryCode countryCode) {
@@ -212,6 +213,7 @@ class SignInScreenState extends State<SignInScreen> {
                                   validator: (value) =>
                                       ValidateCheck.validatePhone(value, null),
                                 ),
+                                if (!isOtpLogin) ...[
                                 const SizedBox(
                                     height: Dimensions.paddingSizeExtremeLarge),
 
@@ -289,8 +291,9 @@ class SignInScreenState extends State<SignInScreen> {
                                                 Theme.of(context).cardColor)),
                                   ),
                                 ]),
-                                const SizedBox(
-                                    height: Dimensions.paddingSizeLarge),
+                                ] else
+                                  const SizedBox(
+                                      height: Dimensions.paddingSizeLarge),
 
                                 const Align(
                                   alignment: Alignment.center,
@@ -309,11 +312,14 @@ class SignInScreenState extends State<SignInScreen> {
                                       ? 180
                                       : null,
                                   buttonText:
-                                      ResponsiveHelper.isDesktop(context)
+                                      isOtpLogin
+                                          ? 'send'.tr
+                                          : ResponsiveHelper.isDesktop(context)
                                           ? 'login'.tr
                                           : 'sign_in'.tr,
-                                  onPressed: () =>
-                                      _login(authController, _countryDialCode!),
+                                  onPressed: () => isOtpLogin
+                                      ? _sendOtpLogin(authController, _countryDialCode!)
+                                      : _login(authController, _countryDialCode!),
                                   textColor: Theme.of(context).primaryColor,
                                   color: Theme.of(context).cardColor,
                                   isLoading: authController.isLoading,
@@ -415,6 +421,24 @@ class SignInScreenState extends State<SignInScreen> {
         ),
       ),
     );
+  }
+
+  void _sendOtpLogin(AuthController authController, String countryDialCode) async {
+    String phone = _phoneController.text.trim();
+    String numberWithCountryCode = countryDialCode + phone;
+    PhoneValid phoneValid =
+        await CustomValidator.isPhoneValid(numberWithCountryCode);
+    numberWithCountryCode = phoneValid.phone;
+
+    if (_formKeyLogin!.currentState!.validate()) {
+      if (phone.isEmpty) {
+        showCustomSnackBar('enter_phone_number'.tr);
+      } else if (!phoneValid.isValid) {
+        showCustomSnackBar('invalid_phone_number'.tr);
+      } else {
+        authController.sendOtpLogin(numberWithCountryCode);
+      }
+    }
   }
 
   void _login(AuthController authController, String countryDialCode) async {

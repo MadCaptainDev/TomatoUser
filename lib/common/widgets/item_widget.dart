@@ -11,6 +11,7 @@ import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/common/models/module_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/helper/date_converter.dart';
+import 'package:sixam_mart/helper/store_discount_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
@@ -61,8 +62,8 @@ class ItemWidget extends StatelessWidget {
       discountType = store!.discount != null ? store!.discount!.discountType : 'percent';
       isAvailable = store!.open == 1 && store!.active!;
     }else {
-      discount = (item!.storeDiscount == 0 || isCampaign) ? item!.discount : item!.storeDiscount;
-      discountType = (item!.storeDiscount == 0 || isCampaign) ? item!.discountType : 'percent';
+      discount = Get.find<ItemController>().getDiscount(item!, store: store ?? StoreDiscountHelper.storeForItem(item!), isCampaign: isCampaign);
+      discountType = Get.find<ItemController>().getDiscountType(item!, store: store ?? StoreDiscountHelper.storeForItem(item!), isCampaign: isCampaign);
       isAvailable = DateConverter.isAvailable(item!.availableTimeStarts, item!.availableTimeEnds);
     }
 

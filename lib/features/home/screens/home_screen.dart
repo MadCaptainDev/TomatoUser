@@ -474,8 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
 
                               /// Search Button
-                              !showMobileModule
-                                  ? SliverPersistentHeader(
+                              SliverPersistentHeader(
                                       pinned: true,
                                       delegate: SliverDelegate(
                                         callback: (val) {},
@@ -487,18 +486,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                           width: Dimensions.webMaxWidth,
                                           child: TextField(
                                             onTap: () => Get.toNamed(
-                                                RouteHelper.getSearchRoute()),
+                                                RouteHelper.getSearchRoute(global: showMobileModule)),
                                             readOnly: true,
                                             decoration: InputDecoration(
-                                              hintText: Get.find<
-                                                          SplashController>()
+                                              hintText: showMobileModule
+                                                  ? 'search_item_or_store'.tr
+                                                  : (Get.find<SplashController>()
                                                       .configModel!
                                                       .moduleConfig!
                                                       .module!
                                                       .showRestaurantText!
-                                                  ? 'search_food_or_restaurant'
-                                                      .tr
-                                                  : 'search_item_or_store'.tr,
+                                                  ? 'search_food_or_restaurant'.tr
+                                                  : 'search_item_or_store'.tr),
                                               hintStyle: robotoRegular.copyWith(
                                                 fontSize:
                                                     Dimensions.fontSizeSmall,
@@ -623,8 +622,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         //   ),
                                         // ))
                                       ),
-                                    )
-                                  : const SliverToBoxAdapter(),
+                                    ),
 
                               SliverToBoxAdapter(
                                 child: Center(

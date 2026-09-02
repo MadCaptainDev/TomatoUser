@@ -1,5 +1,7 @@
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
+import 'package:sixam_mart/features/store/controllers/store_controller.dart';
+import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
 import 'package:sixam_mart/features/item/domain/models/basic_medicine_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
@@ -12,6 +14,7 @@ import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/helper/store_discount_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/common/widgets/cart_snackbar.dart';
@@ -428,9 +431,11 @@ class ItemController extends GetxController implements GetxService {
     return DateConverter.isAvailable(item.availableTimeStarts, item.availableTimeEnds);
   }
 
-  double? getDiscount(Item item) => item.storeDiscount == 0 ? item.discount : item.storeDiscount;
+  double? getDiscount(Item item, {Store? store, bool isCampaign = false}) =>
+      StoreDiscountHelper.getItemDiscount(item, store: store, isCampaign: isCampaign);
 
-  String? getDiscountType(Item item) => item.storeDiscount == 0 ? item.discountType : 'percent';
+  String? getDiscountType(Item item, {Store? store, bool isCampaign = false}) =>
+      StoreDiscountHelper.getItemDiscountType(item, store: store, isCampaign: isCampaign);
 
   void navigateToItemPage(Item? item, BuildContext context, {bool inStore = false, bool isCampaign = false}) {
     if(Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! || item!.moduleType == 'food') {
@@ -446,6 +451,14 @@ class ItemController extends GetxController implements GetxService {
   }
 
   void itemDirectlyAddToCart(Item? item, BuildContext context, {bool inStore = false, bool isCampaign = false}) {
+    if (inStore) {
+      final store = Get.find<StoreController>().store;
+      if (store != null && (store.open != 1 || !Get.find<StoreController>().isStoreOpenNow(store.active!, store.schedules))) {
+        showCustomSnackBar(Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText!
+            ? 'restaurant_is_closed'.tr : 'store_is_closed'.tr);
+        return;
+      }
+    }
 
     if (((item!.foodVariations != null && item.foodVariations!.isEmpty) && item.moduleType == AppConstants.food) || (item.variations != null && item.variations!.isEmpty && item.moduleType != AppConstants.food)) {
       double price = item.price!;

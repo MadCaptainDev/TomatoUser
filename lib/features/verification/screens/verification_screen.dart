@@ -19,11 +19,12 @@ import 'package:sixam_mart/common/widgets/menu_drawer.dart';
 class VerificationScreen extends StatefulWidget {
   final String? number;
   final bool fromSignUp;
+  final bool isOtpLogin;
   final String? token;
   final String password;
   final String? firebaseSession;
   const VerificationScreen({super.key, required this.number, required this.password, required this.fromSignUp,
-    required this.token, this.firebaseSession});
+    required this.token, this.isOtpLogin = false, this.firebaseSession});
 
   @override
   VerificationScreenState createState() => VerificationScreenState();
@@ -126,7 +127,7 @@ class VerificationScreenState extends State<VerificationScreen> {
                       onPressed: _seconds < 1 ? () async {
                         ///Firebase OTP
                         if(widget.firebaseSession != null) {
-                          await authController.firebaseVerifyPhoneNumber(_number!, widget.token, fromSignUp: widget.fromSignUp, canRoute: false);
+                          await authController.firebaseVerifyPhoneNumber(_number!, widget.token, fromSignUp: widget.fromSignUp, isOtpLogin: widget.isOtpLogin, canRoute: false);
                           _startTimer();
                         } else {
                           _resendOtp(verificationController);
@@ -151,13 +152,13 @@ class VerificationScreenState extends State<VerificationScreen> {
                     if(widget.firebaseSession != null) {
                       verificationController.verifyFirebaseOtp(
                         phoneNumber: _number!, session: widget.firebaseSession!,
-                        otp: verificationController.verificationCode, isSignUpPage: widget.fromSignUp,
-                        token: widget.token,
+                        otp: verificationController.verificationCode, isSignUpPage: widget.fromSignUp || widget.isOtpLogin,
+                        token: widget.token, isOtpLogin: widget.isOtpLogin,
                       ).then((value) {
                         if(value.isSuccess) {
                           showCustomSnackBar('successfully_verified'.tr, isError: false);
                           Future.delayed(const Duration(seconds: 1), () {
-                            if(widget.fromSignUp) {
+                            if(widget.isOtpLogin || widget.fromSignUp) {
                               Get.find<LocationController>().navigateToLocationScreen('verification', offAll: true);
                             } else {
                               Get.toNamed(RouteHelper.getResetPasswordRoute(_number, verificationController.verificationCode, 'reset-password'));
@@ -182,7 +183,16 @@ class VerificationScreenState extends State<VerificationScreen> {
   }
 
   void _resendOtp(VerificationController verificationController) {
-    if(widget.fromSignUp) {
+    if(widget.isOtpLogin) {
+      verificationController.forgetPassword(_number).then((value) {
+        if (value.isSuccess) {
+          _startTimer();
+          showCustomSnackBar('resend_code_successful'.tr, isError: false);
+        } else {
+          showCustomSnackBar(value.message);
+        }
+      });
+    } else if(widget.fromSignUp) {
       Get.find<AuthController>().login(_number, widget.password).then((value) {
         if (value.isSuccess) {
           _startTimer();
@@ -205,7 +215,18 @@ class VerificationScreenState extends State<VerificationScreen> {
 
 
   void _verifyOtp(VerificationController verificationController) {
-    if(widget.fromSignUp) {
+    if(widget.isOtpLogin) {
+      verificationController.verifyOtpLogin(_number, widget.token).then((value) {
+        if(value.isSuccess) {
+          showCustomSnackBar('successfully_verified'.tr, isError: false);
+          Future.delayed(const Duration(seconds: 1), () {
+            Get.find<LocationController>().navigateToLocationScreen('verification', offAll: true);
+          });
+        }else {
+          showCustomSnackBar(value.message);
+        }
+      });
+    } else if(widget.fromSignUp) {
       verificationController.verifyPhone(_number, widget.token).then((value) {
         if(value.isSuccess) {
           showCustomSnackBar('successfully_verified'.tr, isError: false);

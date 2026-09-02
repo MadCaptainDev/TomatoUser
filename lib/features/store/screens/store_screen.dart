@@ -230,7 +230,8 @@ class _StoreScreenState extends State<StoreScreen> {
                                         Dimensions.paddingSizeExtraSmall),
                                     child: Text(
                                       '${store.discount!.discountType == 'percent' ? '${store.discount!.discount}% ${'off'.tr}' : '${PriceConverter.convertPrice(store.discount!.discount)} ${'off'.tr}'} '
-                                      '${'on_all_products'.tr}, ${'after_minimum_purchase'.tr} ${PriceConverter.convertPrice(store.discount!.minPurchase)}, '
+                                      '${'on_all_products'.tr}${store.discount!.minPurchase != 0 ? ', ${'after_minimum_purchase'.tr} ${PriceConverter.convertPrice(store.discount!.minPurchase)}' : ''}'
+                                      '${store.discount!.maxDiscount != 0 ? ', ${'up_to_maximum_of'.tr} ${PriceConverter.convertPrice(store.discount!.maxDiscount)}' : ''}, '
                                       '${'daily_time'.tr}: ${DateConverter.convertTimeToTime(store.discount!.startTime!)} - ${DateConverter.convertTimeToTime(store.discount!.endTime!)}',
                                       style: robotoMedium.copyWith(
                                         fontSize: Dimensions.fontSizeSmall,
@@ -239,6 +240,23 @@ class _StoreScreenState extends State<StoreScreen> {
                                       textAlign: TextAlign.center,
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
+                                    ),
+                                  )
+                                : const SizedBox(),
+                            !Get.find<StoreController>().isStoreOpenNow(store.active!, store.schedules) || store.open != 1
+                                ? Container(
+                                    width: double.infinity,
+                                    color: Theme.of(context).colorScheme.error,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: Dimensions.paddingSizeSmall,
+                                      horizontal: Dimensions.paddingSizeDefault,
+                                    ),
+                                    child: Text(
+                                      Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText!
+                                          ? 'restaurant_is_closed_now'.tr
+                                          : 'store_is_closed_now'.tr,
+                                      style: robotoMedium.copyWith(color: Theme.of(context).cardColor),
+                                      textAlign: TextAlign.center,
                                     ),
                                   )
                                 : const SizedBox(),

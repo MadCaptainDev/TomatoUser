@@ -23,24 +23,24 @@ class FoodHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     bool isLoggedIn = AuthHelper.isLoggedIn();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      // Container(
-      //   width: MediaQuery.of(context).size.width,
-      //   decoration: Get.find<ThemeController>().darkTheme
-      //       ? null
-      //       : const BoxDecoration(
-      //           image: DecorationImage(
-      //             image: AssetImage(Images.foodModuleBannerBg),
-      //             fit: BoxFit.cover,
-      //           ),
-      //         ),
-      //   child: const Column(
-      //     children: [
-      //       BadWeatherWidget(),
-      //       BannerView(isFeatured: false),
-      //       SizedBox(height: 12),
-      //     ],
-      //   ),
-      // ),
+      Container(
+        width: MediaQuery.of(context).size.width,
+        decoration: Get.find<ThemeController>().darkTheme
+            ? null
+            : const BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(Images.foodModuleBannerBg),
+                  fit: BoxFit.cover,
+                ),
+              ),
+        child: const Column(
+          children: [
+            BadWeatherWidget(),
+            BannerView(isFeatured: false),
+            SizedBox(height: 12),
+          ],
+        ),
+      ),
       const CategoryView(),
       // isLoggedIn ? const VisitAgainView(fromFood: true) : const SizedBox(),
       // const SpecialOfferView(isFood: true, isShop: false),

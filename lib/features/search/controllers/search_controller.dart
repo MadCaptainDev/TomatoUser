@@ -1,6 +1,8 @@
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
+import 'package:sixam_mart/common/models/module_model.dart';
 import 'package:sixam_mart/features/search/domain/models/popular_categories_model.dart';
 import 'package:sixam_mart/features/search/domain/models/search_suggestion_model.dart';
+import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/features/search/domain/services/search_service_interface.dart';
@@ -90,6 +92,13 @@ class SearchController extends GetxController implements GetxService {
 
   SearchSuggestionModel? _searchSuggestionModel;
   SearchSuggestionModel? get searchSuggestionModel => _searchSuggestionModel;
+
+  bool _globalSearch = false;
+  bool get globalSearch => _globalSearch;
+
+  void setGlobalSearch(bool value) {
+    _globalSearch = value;
+  }
 
   List<PopularCategoryModel?>? _popularCategoryList;
   List<PopularCategoryModel?>? get popularCategoryList => _popularCategoryList;
@@ -226,9 +235,17 @@ class SearchController extends GetxController implements GetxService {
         update();
       }
 
-      Response response = await searchServiceInterface.getSearchData(query, _isStore);
+      Response response = _globalSearch && Get.find<SplashController>().module == null
+          ? await _searchAcrossModules(query, _isStore)
+          : await searchServiceInterface.getSearchData(query, _isStore);
       if (response.statusCode == 200) {
-        if (query.isEmpty) {
+        if (_globalSearch && Get.find<SplashController>().module == null) {
+          if (_isStore) {
+            _storeResultText = query;
+          } else {
+            _itemResultText = query;
+          }
+        } else if (query.isEmpty) {
           if (_isStore) {
             _searchStoreList = [];
           } else {
@@ -252,6 +269,56 @@ class SearchController extends GetxController implements GetxService {
       }
       update();
     }
+  }
+
+  Future<Response> _searchAcrossModules(String query, bool isStore) async {
+    final splashController = Get.find<SplashController>();
+    final modules = splashController.moduleList ?? [];
+    final savedModule = splashController.module;
+    final Set<int> seenIds = {};
+
+    if (isStore) {
+      _searchStoreList = [];
+      _allStoreList = [];
+    } else {
+      _searchItemList = [];
+      _allItemList = [];
+    }
+
+    for (final ModuleModel module in modules) {
+      if ('${module.status}' != '1') {
+        continue;
+      }
+      await splashController.setModule(module, notify: false);
+      final Response response = await searchServiceInterface.getSearchData(query, isStore);
+      if (response.statusCode == 200) {
+        if (isStore) {
+          for (final store in StoreModel.fromJson(response.body).stores ?? <Store>[]) {
+            if (store.id != null && !seenIds.contains(store.id)) {
+              seenIds.add(store.id!);
+              _searchStoreList!.add(store);
+              _allStoreList!.add(store);
+            }
+          }
+        } else {
+          for (final item in ItemModel.fromJson(response.body).items ?? <Item>[]) {
+            if (item.id != null && !seenIds.contains(item.id)) {
+              seenIds.add(item.id!);
+              _searchItemList!.add(item);
+              _allItemList!.add(item);
+            }
+          }
+        }
+      }
+    }
+
+    if (savedModule != null) {
+      await splashController.setModule(savedModule, notify: false);
+    } else {
+      splashController.removeModule();
+    }
+
+    return Response(statusCode: 200, body: isStore ? {'stores': _searchStoreList} : {'items': _searchItemList});
   }
 
   void getHistoryList() {

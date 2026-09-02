@@ -26,7 +26,8 @@ import 'package:sixam_mart/util/styles.dart';
 
 class SearchScreen extends StatefulWidget {
   final String? queryText;
-  const SearchScreen({super.key, required this.queryText});
+  final bool globalSearch;
+  const SearchScreen({super.key, required this.queryText, this.globalSearch = false});
 
   @override
   SearchScreenState createState() => SearchScreenState();
@@ -47,6 +48,7 @@ class SearchScreenState extends State<SearchScreen>
     super.initState();
     _tabController = TabController(length: 2, initialIndex: 0, vsync: this);
     _isLoggedIn = AuthHelper.isLoggedIn();
+    Get.find<search.SearchController>().setGlobalSearch(widget.globalSearch);
     Get.find<search.SearchController>().setSearchMode(true, canUpdate: false);
     Get.find<search.SearchController>().getPopularCategories();
     if (_isLoggedIn) {
