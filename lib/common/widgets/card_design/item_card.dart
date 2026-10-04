@@ -23,8 +23,10 @@ class ItemCard extends StatelessWidget {
   final bool isFood;
   final bool isShop;
   final bool isPopularItemCart;
+  final bool fillWidth;
+  final bool inStore;
   final int? index;
-  const ItemCard({super.key, required this.item, this.isPopularItem = false, required this.isFood, required this.isShop, this.isPopularItemCart = false, this.index});
+  const ItemCard({super.key, required this.item, this.isPopularItem = false, required this.isFood, required this.isShop, this.isPopularItemCart = false, this.fillWidth = false, this.inStore = false, this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +37,7 @@ class ItemCard extends StatelessWidget {
       isItem: true,
       child: Stack(children: [
         Container(
-          width: 200,
+          width: fillWidth ? double.infinity : 200,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
             color: Theme.of(context).cardColor,
@@ -105,6 +107,7 @@ class ItemCard extends StatelessWidget {
                     child: CartCountView(
                       item: item,
                       index: index,
+                      inStore: inStore,
                     ),
                   ),
 
@@ -183,6 +186,7 @@ class ItemCard extends StatelessWidget {
                       child: CartCountView(
                         item: item,
                         index: index,
+                        inStore: inStore,
                         child: Container(
                           height: 35, width: 38,
                           decoration: BoxDecoration(

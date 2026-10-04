@@ -13,7 +13,9 @@ import 'package:sixam_mart/features/home/widgets/web/module_widget.dart';
 import 'package:sixam_mart/features/home/widgets/web/web_basic_medicine_nearby_view_widget.dart';
 import 'package:sixam_mart/features/home/widgets/web/web_best_review_item_view_widget.dart';
 import 'package:sixam_mart/features/home/widgets/web/web_best_store_nearby_view_widget.dart';
-import 'package:sixam_mart/features/home/widgets/web/web_category_view_widget.dart';
+import 'package:sixam_mart/features/home/widgets/views/food_category_grid_view.dart';
+import 'package:sixam_mart/features/home/widgets/views/home_vertical_category_view.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/features/home/widgets/web/web_common_condition_view_widget.dart';
 import 'package:sixam_mart/features/home/widgets/web/web_coupon_banner_view_widget.dart';
 import 'package:sixam_mart/features/home/widgets/web/web_featured_categories_view_widget.dart';
@@ -119,8 +121,17 @@ class _WebNewHomeScreenState extends State<WebNewHomeScreen> {
                 const BadWeatherWidget(),
 
                 GetBuilder<CategoryController>(builder: (categoryController) {
-                  return categoryController.categoryList == null ? WebCategoryViewWidget(categoryController: categoryController)
-                      : categoryController.categoryList!.isEmpty ? const SizedBox() : WebCategoryViewWidget(categoryController: categoryController);
+                  final categories = categoryController.categoryList;
+                  if (categories != null && categories.isEmpty) {
+                    return const SizedBox();
+                  }
+                  if (ModuleHelper.isVerticalCategoryLayout()) {
+                    return const HomeVerticalCategoryView();
+                  }
+                  if (categories == null) {
+                    return const SizedBox(height: 200);
+                  }
+                  return FoodCategoryGridView(categoryController: categoryController);
                 }),
 
                 isPharmacy ? const WebBasicMedicineNearbyViewWidget()

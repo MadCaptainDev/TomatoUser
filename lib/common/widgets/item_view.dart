@@ -51,7 +51,33 @@ class _ItemsViewState extends State<ItemsView> {
     final bool twoColumnItemGrid = widget.useTwoColumnItemGrid ||
         (widget.inStorePage &&
             !widget.isStore &&
-            ResponsiveHelper.isMobile(context));
+            (ResponsiveHelper.isMobile(context) || ResponsiveHelper.isWeb()));
+    final int itemCrossAxisCount = twoColumnItemGrid
+        ? 2
+        : ResponsiveHelper.isMobile(context)
+            ? 1
+            : 3;
+    final double itemMainAxisExtent = twoColumnItemGrid
+        ? 285
+        : ResponsiveHelper.isDesktop(context) && widget.isStore
+            ? 220
+            : ResponsiveHelper.isMobile(context)
+                ? widget.stores != null && widget.isStore
+                    ? 225
+                    : 122
+                : 122;
+    final double itemCrossAxisSpacing = twoColumnItemGrid
+        ? Dimensions.paddingSizeSmall
+        : ResponsiveHelper.isDesktop(context)
+            ? Dimensions.paddingSizeExtremeLarge
+            : Dimensions.paddingSizeLarge;
+    final double itemMainAxisSpacing = twoColumnItemGrid
+        ? Dimensions.paddingSizeSmall
+        : ResponsiveHelper.isDesktop(context)
+            ? Dimensions.paddingSizeExtremeLarge
+            : widget.stores != null && widget.isStore
+                ? Dimensions.paddingSizeLarge
+                : Dimensions.paddingSizeSmall;
     final bool isFoodModule = Get.find<SplashController>().module != null &&
         Get.find<SplashController>().module!.moduleType.toString() == 'food';
     final bool isShopModule = Get.find<SplashController>().module != null &&
@@ -78,37 +104,10 @@ class _ItemsViewState extends State<ItemsView> {
               ? GridView.builder(
                   key: UniqueKey(),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisSpacing: ResponsiveHelper.isDesktop(context)
-                        ? Dimensions.paddingSizeExtremeLarge
-                        : widget.stores != null
-                            ? Dimensions.paddingSizeLarge
-                            : Dimensions.paddingSizeLarge,
-                    mainAxisSpacing: ResponsiveHelper.isDesktop(context)
-                        ? Dimensions.paddingSizeExtremeLarge
-                        : widget.stores != null && widget.isStore
-                            ? Dimensions.paddingSizeLarge
-                            : Dimensions.paddingSizeSmall,
-                    // childAspectRatio: ResponsiveHelper.isDesktop(context) && widget.isStore ? (1/0.6)
-                    //     : ResponsiveHelper.isMobile(context) ? widget.stores != null && widget.isStore ? 2 : 3.8
-                    //     : 3.3,
-                    mainAxisExtent:
-                        ResponsiveHelper.isDesktop(context) && widget.isStore
-                            ? 220
-                            : ResponsiveHelper.isMobile(context)
-                                ? widget.stores != null && widget.isStore
-                                    ? 225
-                                    : twoColumnItemGrid
-                                        ? 285
-                                        : 122
-                                : 122,
-                    crossAxisCount: ResponsiveHelper.isMobile(context)
-                        ? twoColumnItemGrid
-                            ? 2
-                            : 1
-                        : ResponsiveHelper.isDesktop(context) &&
-                                widget.stores != null
-                            ? 3
-                            : 3,
+                    crossAxisSpacing: itemCrossAxisSpacing,
+                    mainAxisSpacing: itemMainAxisSpacing,
+                    mainAxisExtent: itemMainAxisExtent,
+                    crossAxisCount: itemCrossAxisCount,
                   ),
                   physics: widget.isScrollable
                       ? const BouncingScrollPhysics()
@@ -124,14 +123,14 @@ class _ItemsViewState extends State<ItemsView> {
                                 store: widget.stores![index]!,
                                 fromAllStore: true)
                         : twoColumnItemGrid
-                            ? Center(
-                                child: ItemCard(
-                                  item: widget.items![index]!,
-                                  isFood: isFoodModule,
-                                  isShop: isShopModule,
-                                  isPopularItemCart: true,
-                                  index: index,
-                                ),
+                            ? ItemCard(
+                                item: widget.items![index]!,
+                                isFood: isFoodModule,
+                                isShop: isShopModule,
+                                isPopularItemCart: true,
+                                fillWidth: !ResponsiveHelper.isMobile(context),
+                                inStore: widget.inStorePage,
+                                index: index,
                               )
                             : ItemWidget(
                                 isStore: widget.isStore,
@@ -163,32 +162,12 @@ class _ItemsViewState extends State<ItemsView> {
           : GridView.builder(
               key: UniqueKey(),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisSpacing: ResponsiveHelper.isDesktop(context)
-                    ? Dimensions.paddingSizeExtremeLarge
-                    : widget.stores != null
-                        ? Dimensions.paddingSizeLarge
-                        : Dimensions.paddingSizeLarge,
-                mainAxisSpacing: ResponsiveHelper.isDesktop(context)
-                    ? Dimensions.paddingSizeLarge
-                    : widget.stores != null
-                        ? Dimensions.paddingSizeLarge
-                        : Dimensions.paddingSizeSmall,
-                // childAspectRatio: ResponsiveHelper.isDesktop(context) && widget.isStore ? (1/0.6)
-                //     : ResponsiveHelper.isMobile(context) ? widget.isStore ? 2 : 3.8
-                //     : 3,
-                mainAxisExtent:
-                    ResponsiveHelper.isDesktop(context) && widget.isStore
-                        ? 220
-                        : ResponsiveHelper.isMobile(context)
-                            ? widget.isStore
-                                ? 200
-                                : 110
-                            : 110,
-                crossAxisCount: ResponsiveHelper.isMobile(context)
-                    ? 1
-                    : ResponsiveHelper.isDesktop(context)
-                        ? 3
-                        : 3,
+                crossAxisSpacing: itemCrossAxisSpacing,
+                mainAxisSpacing: itemMainAxisSpacing,
+                mainAxisExtent: (widget.isStore || twoColumnItemGrid) ? itemMainAxisExtent : 110,
+                crossAxisCount: widget.isStore
+                    ? (ResponsiveHelper.isMobile(context) ? 1 : 3)
+                    : itemCrossAxisCount,
               ),
               physics: widget.isScrollable
                   ? const BouncingScrollPhysics()

@@ -149,9 +149,8 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
         }
       }
 
-      final bool isVerticalLayout = !ResponsiveHelper.isDesktop(context) &&
-          ModuleHelper.isVerticalCategoryLayout();
-      final bool useTwoColumnItems = !ResponsiveHelper.isDesktop(context);
+      final bool isVerticalLayout = ModuleHelper.isVerticalCategoryLayout();
+      final bool useTwoColumnItems = isVerticalLayout || !ResponsiveHelper.isDesktop(context);
       final bool hasSubCategories = catController.subCategoryList != null &&
           catController.subCategoryList!.length > 1;
       final List<CategoryModel>? topCategories = catController.categoryList;

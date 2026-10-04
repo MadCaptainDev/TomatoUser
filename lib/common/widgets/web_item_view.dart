@@ -1,8 +1,10 @@
+import 'package:sixam_mart/common/widgets/card_design/item_card.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/features/home/widgets/web/web_store_shimmer_widget.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/common/widgets/no_data_screen.dart';
 import 'package:sixam_mart/common/widgets/item_shimmer.dart';
@@ -45,6 +47,62 @@ class _WebItemsViewState extends State<WebItemsView> {
       if(!isNull) {
         length = widget.items!.length;
       }
+    }
+
+    final bool quickAddGrid = widget.fromStore && !widget.isStore;
+    if (quickAddGrid) {
+      final bool isFoodModule = Get.find<SplashController>().module?.moduleType.toString() == AppConstants.food;
+      final bool isShopModule = Get.find<SplashController>().module?.moduleType.toString() == AppConstants.ecommerce;
+      return Column(children: [
+        !isNull ? length > 0 ? GridView.builder(
+          key: UniqueKey(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: Dimensions.paddingSizeDefault,
+            crossAxisSpacing: Dimensions.paddingSizeDefault,
+            mainAxisExtent: 285,
+          ),
+          physics: widget.isScrollable ? const BouncingScrollPhysics() : const NeverScrollableScrollPhysics(),
+          shrinkWrap: widget.isScrollable ? false : true,
+          itemCount: length,
+          padding: widget.padding,
+          itemBuilder: (context, index) {
+            final item = widget.items![index];
+            if (item == null) {
+              return const SizedBox();
+            }
+            return ItemCard(
+              item: item,
+              isFood: isFoodModule,
+              isShop: isShopModule,
+              isPopularItemCart: true,
+              fillWidth: true,
+              inStore: true,
+              index: index,
+            );
+          },
+        ) : NoDataScreen(
+          text: widget.noDataText ?? 'no_item_available'.tr,
+        ) : GridView.builder(
+          key: UniqueKey(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: Dimensions.paddingSizeDefault,
+            crossAxisSpacing: Dimensions.paddingSizeDefault,
+            mainAxisExtent: 285,
+          ),
+          physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
+          itemCount: 6,
+          padding: widget.padding,
+          itemBuilder: (context, index) => Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).disabledColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(Dimensions.radiusLarge),
+            ),
+          ),
+        ),
+      ]);
     }
 
     return Column(children: [

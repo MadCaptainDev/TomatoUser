@@ -166,7 +166,7 @@ class _MyAppState extends State<MyApp> {
           return (GetPlatform.isWeb && splashController.configModel == null)
               ? const SizedBox()
               : GetMaterialApp(
-                  title: AppConstants.appName,
+                  title: GetPlatform.isWeb ? 'Tomato Deliverz' : AppConstants.appName,
                   debugShowCheckedModeBanner: false,
                   navigatorKey: Get.key,
                   scrollBehavior: const MaterialScrollBehavior().copyWith(

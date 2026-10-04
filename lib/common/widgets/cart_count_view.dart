@@ -9,7 +9,8 @@ class CartCountView extends StatelessWidget {
   final Item item;
   final Widget? child;
   final int? index;
-  const CartCountView({super.key, required this.item, this.child, this.index = -1});
+  final bool inStore;
+  const CartCountView({super.key, required this.item, this.child, this.index = -1, this.inStore = false});
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +77,7 @@ class CartCountView extends StatelessWidget {
         ),
       ) : InkWell(
         onTap: () {
-          Get.find<ItemController>().itemDirectlyAddToCart(item, context);
+          Get.find<ItemController>().itemDirectlyAddToCart(item, context, inStore: inStore);
         },
         child: child ?? Container(
           height: 25, width: 25,

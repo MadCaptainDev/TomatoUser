@@ -17,7 +17,6 @@ import 'package:sixam_mart/features/home/widgets/views/home_product_grid_view.da
 import 'package:sixam_mart/features/home/widgets/views/home_vertical_category_view.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/module_helper.dart';
-import 'package:sixam_mart/helper/responsive_helper.dart';
 
 
 class GroceryHomeScreen extends StatelessWidget {
@@ -25,7 +24,7 @@ class GroceryHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool useVerticalCategories = !ResponsiveHelper.isDesktop(context) && ModuleHelper.isVerticalCategoryLayout();
+    final bool useVerticalCategories = ModuleHelper.isVerticalCategoryLayout();
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 

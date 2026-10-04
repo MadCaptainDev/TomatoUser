@@ -196,6 +196,7 @@ class _HomeVerticalCategoryViewState extends State<HomeVerticalCategoryView> {
                                       isPopularItemCart: true,
                                       isShop: isShop,
                                       isFood: false,
+                                      fillWidth: MediaQuery.sizeOf(context).width >= 650,
                                       index: index,
                                     ),
                                     childCount: _items!.length,
