@@ -1,4 +1,3 @@
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:sixam_mart/features/category/controllers/category_controller.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
@@ -9,6 +8,7 @@ import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/features/home/widgets/category_pop_up.dart';
+import 'package:sixam_mart/features/home/widgets/views/food_category_grid_view.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:get/get.dart';
@@ -34,7 +34,14 @@ class CategoryView extends StatelessWidget {
             : isPharmacy
                 ? PharmacyCategoryView(categoryController: categoryController)
                 : isFood
-                    ? FoodCategoryView(categoryController: categoryController)
+                    ? (categoryController.categoryList != null
+                        ? FoodCategoryGridView(
+                            categoryController: categoryController)
+                        : SizedBox(
+                            height: 160,
+                            child: FoodCategoryShimmer(
+                                categoryController: categoryController),
+                          ))
                     : Column(
                         children: [
                           Row(
@@ -420,221 +427,6 @@ class PharmacyCategoryView extends StatelessWidget {
               )
             : PharmacyCategoryShimmer(categoryController: categoryController),
       ),
-    ]);
-  }
-}
-
-class FoodCategoryView extends StatefulWidget {
-  final CategoryController categoryController;
-  const FoodCategoryView({super.key, required this.categoryController});
-
-  @override
-  State<FoodCategoryView> createState() => _FoodCategoryViewState();
-}
-
-class _FoodCategoryViewState extends State<FoodCategoryView> {
-  int _currentIndex = 0;
-
-  @override
-  Widget build(BuildContext context) {
-    final ScrollController scrollController = ScrollController();
-    return Stack(children: [
-      Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        widget.categoryController.categoryList != null
-            ? Column(
-                children: [
-                  SizedBox(height: Dimensions.paddingSizeDefault),
-                  CarouselSlider(
-                    items: widget.categoryController.categoryList!
-                        .map(
-                          (imagePath) => Container(
-                            clipBehavior: Clip.antiAlias,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12.0),
-                            ),
-                            child: CustomImage(
-                              image: '${imagePath.imageFullUrl}',
-                              width: double.infinity,
-                              fit: BoxFit.fill,
-                            ),
-                          ),
-                        )
-                        .toList(),
-                    options: CarouselOptions(
-                      enlargeCenterPage: true,
-                      viewportFraction: 0.9,
-                      onPageChanged: (index, reason) {
-                        setState(() {
-                          _currentIndex = index %
-                              widget.categoryController.categoryList!.length;
-                        });
-                      },
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: widget.categoryController.categoryList!
-                        .asMap()
-                        .entries
-                        .map((entry) {
-                      return GestureDetector(
-                        onTap: () => setState(() {
-                          _currentIndex = entry.key;
-                        }),
-                        child: Container(
-                          width: 8.0,
-                          height: 8.0,
-                          margin: const EdgeInsets.symmetric(
-                              vertical: 10.0, horizontal: 4.0),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _currentIndex == entry.key
-                                ? Theme.of(context).primaryColor
-                                : Colors.grey,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              )
-            : FoodCategoryShimmer(
-                categoryController: widget.categoryController),
-        // SizedBox(
-        //   height: 160,
-        //   child: widget.categoryController.categoryList != null
-        //       ? ListView.builder(
-        //           controller: scrollController,
-        //           physics: const BouncingScrollPhysics(),
-        //           shrinkWrap: true,
-        //           scrollDirection: Axis.horizontal,
-        //           padding: const EdgeInsets.only(
-        //               left: Dimensions.paddingSizeDefault,
-        //               top: Dimensions.paddingSizeDefault),
-        //           itemCount: widget.categoryController.categoryList!.length > 10
-        //               ? 10
-        //               : widget.categoryController.categoryList!.length,
-        //           itemBuilder: (context, index) {
-        //             return Padding(
-        //               padding: const EdgeInsets.only(
-        //                   bottom: Dimensions.paddingSizeDefault,
-        //                   right: Dimensions.paddingSizeDefault,
-        //                   top: Dimensions.paddingSizeDefault),
-        //               child: InkWell(
-        //                 onTap: () {
-        // if (index == 9 &&
-        //     widget.categoryController.categoryList!.length >
-        //         10) {
-        //   Get.toNamed(RouteHelper.getCategoryRoute());
-        // } else {
-        //   Get.toNamed(RouteHelper.getCategoryItemRoute(
-        //     widget.categoryController.categoryList![index].id,
-        //     widget.categoryController.categoryList![index]
-        //         .name!,
-        //   ));
-        // }
-        // },
-        //                 borderRadius:
-        //                     BorderRadius.circular(Dimensions.radiusSmall),
-        //                 child: SizedBox(
-        //                   width: 60,
-        //                   child: Column(children: [
-        //                     Stack(
-        //                       children: [
-        //                         ClipRRect(
-        //                           borderRadius: const BorderRadius.all(
-        //                               Radius.circular(100)),
-        //                           child: CustomImage(
-        //                             image:
-        //                                 '${widget.categoryController.categoryList![index].imageFullUrl}',
-        //                             height: 60,
-        //                             width: double.infinity,
-        //                             fit: BoxFit.cover,
-        //                           ),
-        //                         ),
-        //                         (index == 9 &&
-        //                                 widget.categoryController.categoryList!
-        //                                         .length >
-        //                                     10)
-        //                             ? Positioned(
-        //                                 right: 0,
-        //                                 left: 0,
-        //                                 top: 0,
-        //                                 bottom: 0,
-        //                                 child: Container(
-        //                                     decoration: BoxDecoration(
-        //                                       borderRadius:
-        //                                           const BorderRadius.all(
-        //                                               Radius.circular(100)),
-        //                                       gradient: LinearGradient(
-        //                                         begin: Alignment.topCenter,
-        //                                         end: Alignment.bottomCenter,
-        //                                         colors: [
-        //                                           Theme.of(context)
-        //                                               .primaryColor
-        //                                               .withOpacity(0.4),
-        //                                           Theme.of(context)
-        //                                               .primaryColor
-        //                                               .withOpacity(0.6),
-        //                                           Theme.of(context)
-        //                                               .primaryColor
-        //                                               .withOpacity(0.4),
-        //                                         ],
-        //                                       ),
-        //                                     ),
-        //                                     child: Center(
-        //                                       child: Text(
-        //                                         '+${widget.categoryController.categoryList!.length - 10}',
-        //                                         style: robotoMedium.copyWith(
-        //                                             fontSize: Dimensions
-        //                                                 .fontSizeExtraLarge,
-        //                                             color: Theme.of(context)
-        //                                                 .cardColor),
-        //                                         maxLines: 2,
-        //                                         overflow: TextOverflow.ellipsis,
-        //                                         textAlign: TextAlign.center,
-        //                                       ),
-        //                                     )),
-        //                               )
-        //                             : const SizedBox(),
-        //                       ],
-        //                     ),
-        //                     const SizedBox(height: Dimensions.paddingSizeSmall),
-        //                     Expanded(
-        //                         child: Text(
-        //                       (index == 9 &&
-        //                               widget.categoryController.categoryList!
-        //                                       .length >
-        //                                   10)
-        //                           ? 'see_all'.tr
-        //                           : widget.categoryController
-        //                                   .categoryList![index].name ??
-        //                               '',
-        //                       style: robotoMedium.copyWith(
-        //                           fontSize: Dimensions.fontSizeSmall,
-        //                           color: (index == 9 &&
-        //                                   widget.categoryController
-        //                                           .categoryList!.length >
-        //                                       10)
-        //                               ? Theme.of(context).primaryColor
-        //                               : Theme.of(context)
-        //                                   .textTheme
-        //                                   .bodyMedium!
-        //                                   .color),
-        //                       maxLines: 2,
-        //                       overflow: TextOverflow.ellipsis,
-        //                       textAlign: TextAlign.center,
-        //                     )),
-        //                   ]),
-        //                 ),
-        //               ),
-        //             );
-        //           },
-        //         )
-        //       : FoodCategoryShimmer(
-        //           categoryController: widget.categoryController),
-        // ),
-      ]),
     ]);
   }
 }

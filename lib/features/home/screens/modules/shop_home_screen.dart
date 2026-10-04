@@ -9,7 +9,6 @@ import 'package:sixam_mart/features/home/widgets/views/featured_categories_view.
 import 'package:sixam_mart/features/home/widgets/views/popular_store_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/item_that_you_love_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/just_for_you_view.dart';
-import 'package:sixam_mart/features/home/widgets/views/most_popular_item_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/new_on_mart_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/middle_section_banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/special_offer_view.dart';
@@ -45,7 +44,6 @@ class ShopHomeScreen extends StatelessWidget {
 
       const CategoryView(),
       const HomeProductGridView(isFood: false, isShop: true),
-      const MostPopularItemView(isFood: false, isShop: true),
       const FlashSaleViewWidget(),
       const MiddleSectionBannerView(),
       const HighlightWidget(),
