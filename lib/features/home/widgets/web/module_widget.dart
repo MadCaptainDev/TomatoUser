@@ -12,9 +12,9 @@ class ModuleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<SplashController>(builder: (splashController) {
-      return (ResponsiveHelper.isDesktop(context) && splashController.configModel!.module == null && splashController.moduleList != null
+      return (ResponsiveHelper.isWeb() && !ResponsiveHelper.isMobile(context) && splashController.configModel!.module == null && splashController.moduleList != null
       && splashController.moduleList!.length > 1) ? Container(
-        width: 70,
+        width: 92,
         padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall, vertical: Dimensions.paddingSizeExtraSmall),
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
@@ -50,17 +50,33 @@ class ModuleWidget extends StatelessWidget {
                         border: (splashController.module != null && splashController.moduleList![index].id == splashController.module!.id)
                             ? Border.all(color: Theme.of(context).primaryColor) : null,
                       ),
-                      padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                        child: SizedBox(
-                          height: 25,
-                          child: CustomImage(
-                            image: '${splashController.moduleList![index].iconFullUrl}',
-                            height: 30, width: 30, fit: BoxFit.contain,
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: Dimensions.paddingSizeSmall),
+                      child: Column(children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                          child: SizedBox(
+                            height: 28,
+                            width: 28,
+                            child: CustomImage(
+                              image: '${splashController.moduleList![index].iconFullUrl}',
+                              height: 28, width: 28, fit: BoxFit.contain,
+                            ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 4),
+                        Text(
+                          splashController.moduleList![index].moduleName ?? '',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: robotoMedium.copyWith(
+                            fontSize: 9,
+                            color: (splashController.module != null && splashController.moduleList![index].id == splashController.module!.id)
+                                ? Theme.of(context).primaryColor
+                                : Theme.of(context).textTheme.bodyMedium!.color,
+                          ),
+                        ),
+                      ]),
                     ),
                   ),
                 ),

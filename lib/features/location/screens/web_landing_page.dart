@@ -90,7 +90,7 @@ class _WebLandingPageState extends State<WebLandingPage> {
                 const SizedBox(width: 40),
                 Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisAlignment: MainAxisAlignment.center, children: [
 
-                  Text(splashController.landingModel?.fixedHeaderTitle ?? '', style: robotoBold.copyWith(fontSize: 35)),
+                  Text(_webBrandCopy(splashController.landingModel?.fixedHeaderTitle, fallback: 'Tomato Deliverz'), style: robotoBold.copyWith(fontSize: 35)),
                   const SizedBox(height: Dimensions.paddingSizeLarge),
 
                   Text(
@@ -519,6 +519,15 @@ class _WebLandingPageState extends State<WebLandingPage> {
     return chooseUsList;
   }
 
+}
+
+String _webBrandCopy(String? value, {String fallback = 'Tomato Deliverz'}) {
+  final text = (value ?? '').trim();
+  final lower = text.toLowerCase();
+  if (text.isEmpty || lower.contains('6am') || lower.contains('stackfood') || lower.contains('sixam')) {
+    return fallback;
+  }
+  return text;
 }
 
 class CustomPath extends CustomClipper<Path> {

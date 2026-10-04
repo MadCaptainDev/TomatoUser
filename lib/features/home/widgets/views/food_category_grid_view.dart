@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/features/category/controllers/category_controller.dart';
 import 'package:sixam_mart/features/language/controllers/language_controller.dart';
+import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -19,6 +20,9 @@ class FoodCategoryGridView extends StatelessWidget {
   Widget build(BuildContext context) {
     if (categoryController.categoryList!.isEmpty) {
       return const SizedBox();
+    }
+    if (ResponsiveHelper.isWeb() && !ResponsiveHelper.isMobile(context)) {
+      return _DesktopFoodCategoryGrid(categoryController: categoryController);
     }
 
     final categories = categoryController.categoryList!;
@@ -104,6 +108,37 @@ class _FoodCategoryCell extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DesktopFoodCategoryGrid extends StatelessWidget {
+  final CategoryController categoryController;
+  const _DesktopFoodCategoryGrid({required this.categoryController});
+
+  @override
+  Widget build(BuildContext context) {
+    final categories = categoryController.categoryList!;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Dimensions.paddingSizeDefault,
+        vertical: Dimensions.paddingSizeSmall,
+      ),
+      itemCount: categories.length,
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 120,
+        mainAxisExtent: 100,
+        crossAxisSpacing: Dimensions.paddingSizeSmall,
+        mainAxisSpacing: Dimensions.paddingSizeSmall,
+      ),
+      itemBuilder: (context, index) => Center(
+        child: _FoodCategoryCell(
+          categoryController: categoryController,
+          index: index,
         ),
       ),
     );

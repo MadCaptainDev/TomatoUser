@@ -31,7 +31,7 @@ import 'package:sixam_mart/common/widgets/menu_drawer.dart';
 import 'package:sixam_mart/common/widgets/paginated_list_view.dart';
 import 'package:sixam_mart/common/widgets/veg_filter_widget.dart';
 import 'package:sixam_mart/common/widgets/web_item_view.dart';
-import 'package:sixam_mart/common/widgets/web_item_widget.dart';
+import 'package:sixam_mart/common/widgets/card_design/item_card.dart';
 import 'package:sixam_mart/common/widgets/web_menu_bar.dart';
 import 'package:sixam_mart/features/checkout/screens/checkout_screen.dart';
 import 'package:sixam_mart/features/search/widgets/custom_check_box_widget.dart';
@@ -444,7 +444,7 @@ class _StoreScreenState extends State<StoreScreen> {
                                   child: SizedBox(
                                     width: Dimensions.webMaxWidth,
                                     height: ResponsiveHelper.isDesktop(context)
-                                        ? 300
+                                        ? 360
                                         : 125,
                                     child: Column(
                                       crossAxisAlignment:
@@ -459,7 +459,7 @@ class _StoreScreenState extends State<StoreScreen> {
                                             height: Dimensions
                                                 .paddingSizeExtraSmall),
                                         SizedBox(
-                                          height: 250,
+                                          height: 290,
                                           child: ListView.builder(
                                             shrinkWrap: true,
                                             scrollDirection: Axis.horizontal,
@@ -483,16 +483,13 @@ class _StoreScreenState extends State<StoreScreen> {
                                                 margin: const EdgeInsets.only(
                                                     right: Dimensions
                                                         .paddingSizeSmall),
-                                                child: WebItemWidget(
-                                                  isStore: false,
-                                                  item: storeController
-                                                      .recommendedItemModel!
-                                                      .items![index],
-                                                  store: null,
-                                                  index: index,
-                                                  length: null,
-                                                  isCampaign: false,
+                                                child: ItemCard(
+                                                  item: storeController.recommendedItemModel!.items![index],
+                                                  isFood: Get.find<SplashController>().module?.moduleType.toString() == AppConstants.food,
+                                                  isShop: Get.find<SplashController>().module?.moduleType.toString() == AppConstants.ecommerce,
+                                                  isPopularItemCart: true,
                                                   inStore: true,
+                                                  index: index,
                                                 ),
                                               );
                                             },

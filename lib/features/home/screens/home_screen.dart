@@ -47,6 +47,10 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   static Future<void> loadData(bool reload, {bool fromModule = false}) async {
+    if (GetPlatform.isWeb) {
+      await _loadWebData(reload);
+      return;
+    }
     Get.find<LocationController>().syncZoneData();
     Get.find<FlashSaleController>().setEmptyFlashSale(fromModule: fromModule);
     if (Get.find<SplashController>().module != null &&
@@ -114,6 +118,32 @@ class HomeScreen extends StatefulWidget {
         Get.find<ItemController>().getConditionsWiseItem(
             Get.find<ItemController>().commonConditions![0].id!, false);
       }
+    }
+  }
+
+  /// Desktop home only paints a banner, categories, and either a food store
+  /// list or a vertical product grid. Skip the mobile sections that web no
+  /// longer shows so the first paint is not waiting on unused APIs.
+  static Future<void> _loadWebData(bool reload) async {
+    Get.find<LocationController>().syncZoneData();
+    final splash = Get.find<SplashController>();
+    final module = splash.module;
+    final bool isParcel = module != null &&
+        (splash.configModel?.moduleConfig?.module?.isParcel ?? false);
+    if (module != null && !isParcel) {
+      Get.find<BannerController>().getBannerList(reload);
+      Get.find<CategoryController>().getCategoryList(reload);
+      if (module.moduleType.toString() == AppConstants.food) {
+        Get.find<StoreController>().getStoreList(1, reload);
+      }
+    }
+    await splash.getModules();
+    if (splash.module == null && splash.configModel?.module == null) {
+      Get.find<BannerController>().getFeaturedBanner();
+    }
+    if (AuthHelper.isLoggedIn()) {
+      await Get.find<ProfileController>().getUserInfo();
+      Get.find<NotificationController>().getNotificationList(reload);
     }
   }
 
@@ -242,6 +272,10 @@ class _HomeScreenState extends State<HomeScreen> {
               : SafeArea(
                   child: RefreshIndicator(
                     onRefresh: () async {
+                      if (GetPlatform.isWeb) {
+                        await HomeScreen.loadData(true);
+                        return;
+                      }
                       splashController.setRefreshing(true);
                       if (Get.find<SplashController>().module != null) {
                         await Get.find<LocationController>().syncZoneData();

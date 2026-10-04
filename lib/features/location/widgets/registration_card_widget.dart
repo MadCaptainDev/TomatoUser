@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
+import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -47,6 +48,11 @@ class RegistrationCardWidget extends StatelessWidget {
                 width: 100, height: 40,
                 onPressed: () async {
                   String url = isStore ? splashController.landingModel!.joinSellerButtonUrl ?? '' : splashController.landingModel!.joinDeliveryManButtonUrl ?? '';
+                  final lower = url.toLowerCase();
+                  if (lower.contains('6amtech') || lower.contains('6ammart') || lower.contains('stackfood')) {
+                    Get.toNamed(isStore ? RouteHelper.getRestaurantRegistrationRoute() : RouteHelper.getDeliverymanRegistrationRoute());
+                    return;
+                  }
                   if(await canLaunchUrlString(url)) {
                     launchUrlString(url);
                   }

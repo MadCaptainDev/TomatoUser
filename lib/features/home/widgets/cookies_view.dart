@@ -25,7 +25,7 @@ class CookiesView extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
             child: Text(
-              Get.find<SplashController>().configModel!.cookiesText ?? 'This is dummy cookies text',
+              _cookiesCopy(),
               style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall,color: Colors.white70),
               maxLines: 10, textAlign: TextAlign.justify, overflow: TextOverflow.ellipsis,
             ),
@@ -49,14 +49,14 @@ class CookiesView extends StatelessWidget {
 
             TextButton(
               style: TextButton.styleFrom(
-                backgroundColor: Colors.green,
+                backgroundColor: Theme.of(context).primaryColor,
                 padding: EdgeInsets.zero,
                 minimumSize: const Size(80,35),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               onPressed: (){
                 Get.find<SplashController>().saveCookiesData(true);
-                Get.find<SplashController>().cookiesStatusChange(Get.find<SplashController>().configModel!.cookiesText ?? "This is dummy cookies text");
+                Get.find<SplashController>().cookiesStatusChange(_cookiesCopy());
               },
               child:  Padding(padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeDefault,vertical: 5),
                 child: Center(
@@ -72,4 +72,12 @@ class CookiesView extends StatelessWidget {
       ),
     );
   }
+}
+
+String _cookiesCopy() {
+  final raw = Get.find<SplashController>().configModel?.cookiesText?.trim() ?? '';
+  if (raw.isEmpty || raw.toLowerCase().contains('6am')) {
+    return 'Tomato Deliverz uses cookies to remember your address, cart, and preferences.';
+  }
+  return raw;
 }

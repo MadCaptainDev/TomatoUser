@@ -193,7 +193,7 @@ class AppConstants {
   static const String removeItemCartUri = '/api/v1/customer/cart/remove-item';
 
   /// Shared Key
-  static const String theme = '6ammart_theme';
+  static const String theme = 'tomato_theme';
   static const String token = '6ammart_token';
   static const String countryCode = '6ammart_country_code';
   static const String languageCode = '6ammart_language_code';

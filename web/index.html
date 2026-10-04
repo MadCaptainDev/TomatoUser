@@ -53,7 +53,8 @@
 
   <div class="preloader">
     <div class="preloader-container">
-      <img width="50" class="preloader-img" src="favicon.png" alt="">
+      <img class="preloader-logo" src="logo.png" alt="Tomato Deliverz">
+      <p class="preloader-title">TOMATO DELIVERZ</p>
       <div class="loader"></div>
     </div>
   </div>
@@ -62,7 +63,7 @@
   <header class="header">
     <div class="header-container d-flex align-items-center justify-content-between">
       <div class="header-start d-flex gap-5 align-items-center">
-        <img class="logo" src="logo.png" alt="">
+        <img class="logo" src="logo.png" alt="Tomato Deliverz">
         <div class="placeholder placeholder-wide"></div>
         <div class="placeholder"></div>
         <div class="placeholder"></div>
@@ -81,7 +82,7 @@
     // Check if localStorage is supported in the browser
       if (typeof(Storage) !== "undefined") {
         // Get the item from localStorage
-        var itemValue = localStorage.getItem("flutter.6ammart_theme");
+        var itemValue = localStorage.getItem("flutter.tomato_theme");
         // Check if the item exists
         if (itemValue !== null) {
           // Check the value of the item
@@ -139,30 +140,15 @@
   </script>
 
   <script>
-    {{flutter_bootstrap_js}}
+    window.addEventListener('flutter-first-frame', function () {
+      var preloader = document.querySelector('.preloader');
+      var header = document.querySelector('header.header');
+      if (preloader) preloader.remove();
+      if (header) header.remove();
+    });
   </script>
-
   <script>
-    // Import the functions you need from the SDKs you need
-    import { initializeApp } from "firebase/app";
-    import { getAnalytics } from "firebase/analytics";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-    // Your web app's Firebase configuration
-    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-    const firebaseConfig = {
-      apiKey: "AIzaSyDFN-73p8zKVZbA0i5DtO215XzAb-xuGSE",
-      authDomain: "ammart-8885e.firebaseapp.com",
-      databaseURL: "https://ammart-8885e-default-rtdb.firebaseio.com",
-      projectId: "ammart-8885e",
-      storageBucket: "ammart-8885e.appspot.com",
-      messagingSenderId: "1000163153346",
-      appId: "1:1000163153346:web:4f702a4b5adbd5c906b25b",
-      measurementId: "G-L1GNL2YV61"
-    };
-    // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
+    {{flutter_bootstrap_js}}
   </script>
 
 </body>

@@ -150,7 +150,8 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
       }
 
       final bool isVerticalLayout = ModuleHelper.isVerticalCategoryLayout();
-      final bool useTwoColumnItems = isVerticalLayout || !ResponsiveHelper.isDesktop(context);
+      final double railWidth = (ResponsiveHelper.isWeb() && !ResponsiveHelper.isMobile(context)) ? 128 : 86;
+      final bool useTwoColumnItems = true;
       final bool hasSubCategories = catController.subCategoryList != null &&
           catController.subCategoryList!.length > 1;
       final List<CategoryModel>? topCategories = catController.categoryList;
@@ -450,7 +451,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Container(
-                                width: 86,
+                                width: railWidth,
                                 decoration: BoxDecoration(
                                   color: Theme.of(context).cardColor,
                                   border: Border(

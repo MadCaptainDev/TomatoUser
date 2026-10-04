@@ -52,14 +52,19 @@ class _ItemsViewState extends State<ItemsView> {
         (widget.inStorePage &&
             !widget.isStore &&
             (ResponsiveHelper.isMobile(context) || ResponsiveHelper.isWeb()));
+    final bool webWideStore = widget.isStore &&
+        ResponsiveHelper.isWeb() &&
+        !ResponsiveHelper.isMobile(context);
     final int itemCrossAxisCount = twoColumnItemGrid
         ? 2
-        : ResponsiveHelper.isMobile(context)
-            ? 1
-            : 3;
+        : webWideStore
+            ? 2
+            : ResponsiveHelper.isMobile(context)
+                ? 1
+                : 3;
     final double itemMainAxisExtent = twoColumnItemGrid
         ? 285
-        : ResponsiveHelper.isDesktop(context) && widget.isStore
+        : webWideStore || (ResponsiveHelper.isDesktop(context) && widget.isStore)
             ? 220
             : ResponsiveHelper.isMobile(context)
                 ? widget.stores != null && widget.isStore
@@ -166,7 +171,9 @@ class _ItemsViewState extends State<ItemsView> {
                 mainAxisSpacing: itemMainAxisSpacing,
                 mainAxisExtent: (widget.isStore || twoColumnItemGrid) ? itemMainAxisExtent : 110,
                 crossAxisCount: widget.isStore
-                    ? (ResponsiveHelper.isMobile(context) ? 1 : 3)
+                    ? (webWideStore
+                        ? 2
+                        : (ResponsiveHelper.isMobile(context) ? 1 : 3))
                     : itemCrossAxisCount,
               ),
               physics: widget.isScrollable

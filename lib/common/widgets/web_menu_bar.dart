@@ -220,7 +220,7 @@ class WebMenuBar extends StatelessWidget implements PreferredSizeWidget {
 
             InkWell(
               onTap: () => Get.toNamed(RouteHelper.getInitialRoute()),
-              child: Image.asset(Images.logo, width: 100, height: 50),
+              child: Image.asset(Images.logo, height: 46, fit: BoxFit.contain, semanticLabel: 'Tomato Deliverz'),
             ),
 
             const SizedBox(width: 20),

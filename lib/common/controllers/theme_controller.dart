@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:get/get.dart';
@@ -26,6 +27,9 @@ class ThemeController extends GetxController implements GetxService {
   void toggleTheme() {
     _darkTheme = !_darkTheme;
     sharedPreferences.setBool(AppConstants.theme, _darkTheme);
+    if (kIsWeb) {
+      sharedPreferences.setBool('tomato_theme', _darkTheme);
+    }
     update();
   }
 
@@ -38,7 +42,12 @@ class ThemeController extends GetxController implements GetxService {
   void _loadCurrentTheme() async {
     _lightMap = await rootBundle.loadString('assets/map/light_map.json');
     _darkMap = await rootBundle.loadString('assets/map/dark_map.json');
-    _darkTheme = sharedPreferences.getBool(AppConstants.theme) ?? false;
+    if (kIsWeb) {
+      _darkTheme = sharedPreferences.getBool('tomato_theme') ?? sharedPreferences.getBool(AppConstants.theme) ?? false;
+      sharedPreferences.setBool('tomato_theme', _darkTheme);
+    } else {
+      _darkTheme = sharedPreferences.getBool(AppConstants.theme) ?? false;
+    }
     update();
   }
 }

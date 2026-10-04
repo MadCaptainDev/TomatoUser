@@ -7,6 +7,7 @@ import 'package:sixam_mart/features/category/controllers/category_controller.dar
 import 'package:sixam_mart/features/category/domain/models/category_model.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
+import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
@@ -130,7 +131,11 @@ class _HomeVerticalCategoryViewState extends State<HomeVerticalCategoryView> {
       _syncWithCategories(categories);
 
       final bool isShop = Get.find<SplashController>().module?.moduleType.toString() == AppConstants.ecommerce;
-      final double height = (MediaQuery.of(context).size.height * 0.72).clamp(420.0, 680.0);
+      final bool webWide = ResponsiveHelper.isWeb() && !ResponsiveHelper.isMobile(context);
+      final double height = webWide
+          ? (MediaQuery.of(context).size.height * 0.78).clamp(520.0, 820.0)
+          : (MediaQuery.of(context).size.height * 0.72).clamp(420.0, 680.0);
+      final double railWidth = webWide ? 128 : 86;
       final CategoryModel? selected = categories != null && _selectedIndex < categories.length
           ? categories[_selectedIndex] : null;
 
@@ -150,7 +155,7 @@ class _HomeVerticalCategoryViewState extends State<HomeVerticalCategoryView> {
             height: height,
             child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
               Container(
-                width: 86,
+                width: railWidth,
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   border: Border(right: BorderSide(color: Theme.of(context).disabledColor.withOpacity(0.15))),

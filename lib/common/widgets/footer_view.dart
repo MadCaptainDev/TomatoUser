@@ -52,7 +52,9 @@ class _FooterViewState extends State<FooterView> {
 
               Expanded(flex: 4, child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 const SizedBox(height: Dimensions.paddingSizeExtraLarge),
-                Image.asset(Images.logo, width: 126, height: 40),
+                Image.asset(Images.logo, height: 46, fit: BoxFit.contain, semanticLabel: 'Tomato Deliverz'),
+                const SizedBox(height: 4),
+                Text('Tomato Deliverz', style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeSmall)),
                 const SizedBox(height: Dimensions.paddingSizeSmall),
 
                 Text('subscribe_to_out_new_channel_to_get_latest_updates'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
@@ -277,7 +279,7 @@ class _FooterViewState extends State<FooterView> {
                 width: Dimensions.webMaxWidth, height: 50,
                 child: Center(
                   child: Text(
-                    '© ${_config.footerText ?? ''}',
+                    _copyrightLine(),
                     style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, fontWeight: FontWeight.w400),
                   ),
                 ),
@@ -289,6 +291,14 @@ class _FooterViewState extends State<FooterView> {
       ) : const SizedBox.shrink(),
 
     ]);
+  }
+
+  String _copyrightLine() {
+    final raw = (_config?.footerText ?? '').trim();
+    if (raw.isEmpty || raw.toLowerCase().contains('6am')) {
+      return '© Tomato Deliverz';
+    }
+    return '© Tomato Deliverz · $raw';
   }
 
   _launchURL(String url) async {
