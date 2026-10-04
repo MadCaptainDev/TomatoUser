@@ -7,6 +7,7 @@ import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/custom_image.dart';
 import 'package:sixam_mart/features/home/widgets/category_pop_up.dart';
+import 'package:sixam_mart/features/home/widgets/views/food_category_grid_view.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer_animation/shimmer_animation.dart';
 import 'package:get/get.dart';
@@ -23,7 +24,7 @@ class CategoryView extends StatelessWidget {
       bool isFood = splashController.module != null && splashController.module!.moduleType.toString() == 'food';
 
         return GetBuilder<CategoryController>(builder: (categoryController) {
-          return (categoryController.categoryList != null && categoryController.categoryList!.isEmpty) ? const SizedBox() : isPharmacy ? PharmacyCategoryView(categoryController: categoryController) : isFood ? FoodCategoryView(categoryController: categoryController) : Column(
+          return (categoryController.categoryList != null && categoryController.categoryList!.isEmpty) ? const SizedBox() : isPharmacy ? PharmacyCategoryView(categoryController: categoryController) : isFood ? (ResponsiveHelper.isMobile(context) ? (categoryController.categoryList != null ? FoodCategoryGridView(categoryController: categoryController) : CategoryShimmer(categoryController: categoryController)) : FoodCategoryView(categoryController: categoryController)) : Column(
             children: [
               Row(children: [
                 Expanded(

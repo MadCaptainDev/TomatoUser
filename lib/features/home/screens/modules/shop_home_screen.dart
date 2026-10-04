@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sixam_mart/features/home/widgets/brands_view_widget.dart';
 import 'package:sixam_mart/features/home/widgets/highlight_widget.dart';
-import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/features/flash_sale/widgets/flash_sale_view_widget.dart';
 import 'package:sixam_mart/features/home/widgets/bad_weather_widget.dart';
@@ -15,7 +14,7 @@ import 'package:sixam_mart/features/home/widgets/views/new_on_mart_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/middle_section_banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/special_offer_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/promotional_banner_view.dart';
-import 'package:sixam_mart/features/home/widgets/views/visit_again_view.dart';
+import 'package:sixam_mart/features/home/widgets/views/home_product_grid_view.dart';
 import 'package:sixam_mart/features/home/widgets/banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/category_view.dart';
 
@@ -24,7 +23,6 @@ class ShopHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool isLoggedIn = AuthHelper.isLoggedIn();
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
       Container(
@@ -46,7 +44,7 @@ class ShopHomeScreen extends StatelessWidget {
       ),
 
       const CategoryView(),
-      isLoggedIn ? const VisitAgainView() : const SizedBox(),
+      const HomeProductGridView(isFood: false, isShop: true),
       const MostPopularItemView(isFood: false, isShop: true),
       const FlashSaleViewWidget(),
       const MiddleSectionBannerView(),

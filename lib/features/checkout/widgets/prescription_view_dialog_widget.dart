@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sixam_mart/helper/platform/file_image_view.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 
 class PrescriptionViewDialogWidget extends StatelessWidget {
@@ -37,15 +37,10 @@ class PrescriptionViewDialogWidget extends StatelessWidget {
           color: Theme.of(context).cardColor,
         ),
         width: context.width,
-        child: GetPlatform.isWeb ? ClipRRect(
+        child: ClipRRect(
           borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-          child: Image.network(
+          child: fileImage(
             filePath, fit: BoxFit.cover, width: context.width, height: context.height * 0.8,
-          ),
-        ) : ClipRRect(
-          borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-          child: Image.file(
-            File(filePath), fit: BoxFit.cover, /*width: context.width, height: context.height * 0.8,*/
           ),
         ),
       ),

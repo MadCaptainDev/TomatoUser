@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:sixam_mart/helper/platform/file_image_view.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -238,20 +237,10 @@ class _DeliveryManRegistrationScreenState
                                                         child: deliverymanRegistrationController
                                                                     .pickedImage !=
                                                                 null
-                                                            ? GetPlatform.isWeb
-                                                                ? Image.network(
+                                                            ? fileImage(
                                                                     deliverymanRegistrationController
                                                                         .pickedImage!
                                                                         .path,
-                                                                    width: 150,
-                                                                    height: 120,
-                                                                    fit: BoxFit
-                                                                        .cover,
-                                                                  )
-                                                                : Image.file(
-                                                                    File(deliverymanRegistrationController
-                                                                        .pickedImage!
-                                                                        .path),
                                                                     width: 150,
                                                                     height: 120,
                                                                     fit: BoxFit
@@ -949,19 +938,8 @@ class _DeliveryManRegistrationScreenState
                                                           borderRadius: BorderRadius
                                                               .circular(Dimensions
                                                                   .radiusSmall),
-                                                          child: GetPlatform
-                                                                  .isWeb
-                                                              ? Image.network(
+                                                          child: fileImage(
                                                                   file!.path,
-                                                                  width: double
-                                                                      .infinity,
-                                                                  height: 120,
-                                                                  fit: BoxFit
-                                                                      .cover,
-                                                                )
-                                                              : Image.file(
-                                                                  File(file!
-                                                                      .path),
                                                                   width: double
                                                                       .infinity,
                                                                   height: 120,
@@ -1079,18 +1057,9 @@ class _DeliveryManRegistrationScreenState
                                   child: deliverymanRegistrationController
                                               .pickedImage !=
                                           null
-                                      ? GetPlatform.isWeb
-                                          ? Image.network(
+                                      ? fileImage(
                                               deliverymanRegistrationController
                                                   .pickedImage!.path,
-                                              width: 180,
-                                              height: 180,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : Image.file(
-                                              File(
-                                                  deliverymanRegistrationController
-                                                      .pickedImage!.path),
                                               width: 180,
                                               height: 180,
                                               fit: BoxFit.cover,
@@ -1656,15 +1625,8 @@ class _DeliveryManRegistrationScreenState
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(
                                           Dimensions.radiusSmall),
-                                      child: GetPlatform.isWeb
-                                          ? Image.network(
+                                      child: fileImage(
                                               file!.path,
-                                              width: 150,
-                                              height: 120,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : Image.file(
-                                              File(file!.path),
                                               width: 150,
                                               height: 120,
                                               fit: BoxFit.cover,

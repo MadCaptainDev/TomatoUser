@@ -24,7 +24,7 @@ abstract class CartServiceInterface {
   Future<bool> removeCartItemOnline(int cartId);
   Future<bool> clearCartOnline();
   int isExistInCart(List<CartModel> cartList, int? itemID, String variationType, bool isUpdate, int? cartIndex);
-  bool existAnotherStoreItem(int? storeID, int? moduleId, List<CartModel> cartList);
+  bool existAnotherStoreItem(int? storeID, int? moduleId, List<CartModel> cartList, {String? newStoreCartType});
   int cartQuantity(int itemId, List<CartModel> cartList);
   String cartVariant(int itemId, List<CartModel> cartList);
 }

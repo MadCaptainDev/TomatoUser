@@ -1,11 +1,11 @@
 {
-    "name": "6amMart",
-    "short_name": "6amMart",
+    "name": "Tomato Deliverz",
+    "short_name": "Tomato",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#2A9849",
-    "theme_color": "#2A9849",
-    "description": "A Multi-vendor Food. Grocery, eCommerce, Pharmacy & Parcel service.",
+    "background_color": "#E53935",
+    "theme_color": "#E53935",
+    "description": "Tomato Deliverz — Food, Grocery, eCommerce, Pharmacy & Parcel delivery.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

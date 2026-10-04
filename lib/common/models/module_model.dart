@@ -9,6 +9,7 @@ class ModuleModel {
   String? description;
   int? storesCount;
   String? status;
+  String? categoryLayout;
   String? createdAt;
   String? updatedAt;
   List<ModuleZoneData>? zones;
@@ -20,6 +21,7 @@ class ModuleModel {
     this.thumbnailFullUrl,
     this.storesCount,
     this.status,
+    this.categoryLayout,
     this.iconFullUrl,
     this.themeId,
     this.description,
@@ -38,6 +40,7 @@ class ModuleModel {
     description = json['description'];
     storesCount = json['stores_count'];
     status = json['status']?.toString();
+    categoryLayout = json['category_layout'];
     createdAt = json['created_at'];
     updatedAt = json['updated_at'];
     if (json['zones'] != null) {
@@ -57,6 +60,7 @@ class ModuleModel {
     data['description'] = description;
     data['stores_count'] = storesCount;
     data['status'] = status;
+    data['category_layout'] = categoryLayout;
     data['created_at'] = createdAt;
     data['updated_at'] = updatedAt;
     if (zones != null) {

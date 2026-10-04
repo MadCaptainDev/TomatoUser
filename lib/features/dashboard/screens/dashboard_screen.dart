@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:expandable_bottom_sheet/expandable_bottom_sheet.dart';
 import 'package:flutter/cupertino.dart';
@@ -162,11 +161,7 @@ class DashboardScreenState extends State<DashboardScreen> {
               Get.find<StoreController>().resetStoreData();
             } else {
               if (_canExit) {
-                if (GetPlatform.isAndroid) {
-                  SystemNavigator.pop();
-                } else if (GetPlatform.isIOS) {
-                  exit(0);
-                }
+                SystemNavigator.pop();
               } else {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                   content: Text('back_press_again_to_exit'.tr,
@@ -345,14 +340,53 @@ class DashboardScreenState extends State<DashboardScreen> {
                                                       children: [
                                                         BottomNavItemWidget(
                                                           title: 'home'.tr,
-                                                          selectedIcon:
-                                                              Images.home,
+                                                          selectedIcon: (splashController
+                                                                          .module !=
+                                                                      null &&
+                                                                  splashController
+                                                                          .configModel!
+                                                                          .module ==
+                                                                      null &&
+                                                                  splashController
+                                                                          .moduleList !=
+                                                                      null &&
+                                                                  splashController
+                                                                          .moduleList!
+                                                                          .length !=
+                                                                      1)
+                                                              ? Images
+                                                                  .moduleIcon
+                                                              : Images.home,
                                                           unSelectedIcon:
                                                               Images.home,
                                                           isSelected:
                                                               _pageIndex == 0,
-                                                          onTap: () =>
-                                                              _setPage(0),
+                                                          onTap: () {
+                                                            if (_pageIndex ==
+                                                                    0 &&
+                                                                splashController
+                                                                        .module !=
+                                                                    null &&
+                                                                splashController
+                                                                        .configModel!
+                                                                        .module ==
+                                                                    null &&
+                                                                splashController
+                                                                        .moduleList !=
+                                                                    null &&
+                                                                splashController
+                                                                        .moduleList!
+                                                                        .length !=
+                                                                    1) {
+                                                              splashController
+                                                                  .removeModule();
+                                                              Get.find<
+                                                                      StoreController>()
+                                                                  .resetStoreData();
+                                                            } else {
+                                                              _setPage(0);
+                                                            }
+                                                          },
                                                         ),
                                                         BottomNavItemWidget(
                                                           title: isParcel

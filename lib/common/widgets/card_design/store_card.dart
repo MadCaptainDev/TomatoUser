@@ -91,7 +91,7 @@ class StoreCard extends StatelessWidget {
                         rating: store.avgRating,
                         ratingCount: store.ratingCount,
                         size: 12,
-                      ) : const SizedBox() : Row(children: [
+                      ) : const SizedBox() : (store.isLocationVisible ? Row(children: [
 
                         Icon(Icons.storefront, size: 15, color: Theme.of(context).primaryColor),
                         const SizedBox(width: Dimensions.paddingSizeExtraSmall),
@@ -103,10 +103,10 @@ class StoreCard extends StatelessWidget {
                           ),
                         ),
 
-                      ]),
+                      ]) : const SizedBox()),
                       const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
-                      !isPharmacy ? Row(children: [
+                      !isPharmacy ? (store.isLocationVisible ? Row(children: [
 
                         Icon(Icons.storefront, size: 15, color: Theme.of(context).primaryColor),
                         const SizedBox(width: Dimensions.paddingSizeExtraSmall),
@@ -118,7 +118,7 @@ class StoreCard extends StatelessWidget {
                           ),
                         ),
 
-                      ]) : Text('${store.itemCount}' ' ' 'items'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor)),
+                      ]) : const SizedBox()) : Text('${store.itemCount}' ' ' 'items'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).primaryColor)),
 
                     ]),
                   ),

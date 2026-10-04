@@ -545,13 +545,19 @@ class OrderInfoWidget extends StatelessWidget {
                     parcel ? order.parcelCategory!.name! : order.store!.name!, maxLines: 1, overflow: TextOverflow.ellipsis,
                     style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
                   ),
-                  Text(
-                    parcel ? order.parcelCategory!.description! : order.store?.address ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,
-                    style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
-                  ),
+                  if (!parcel && (order.store?.isLocationVisible ?? true))
+                    Text(
+                      order.store?.address ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
+                    )
+                  else if (parcel)
+                    Text(
+                      order.parcelCategory!.description!, maxLines: 1, overflow: TextOverflow.ellipsis,
+                      style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor),
+                    ),
                 ])),
 
-                (!parcel && order.orderType == 'take_away' && (order.orderStatus == 'pending' || order.orderStatus == 'accepted'
+                (!parcel && (order.store?.isLocationVisible ?? true) && order.orderType == 'take_away' && (order.orderStatus == 'pending' || order.orderStatus == 'accepted'
                 || order.orderStatus == 'confirmed' || order.orderStatus == 'processing' || order.orderStatus == 'handover'
                 || order.orderStatus == 'picked_up')) ? TextButton.icon(onPressed: () async {
                   if(!parcel) {

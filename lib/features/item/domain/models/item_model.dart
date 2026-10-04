@@ -103,6 +103,8 @@ class Item {
   List<String>? nutritionsName;
   List<String>? allergiesName;
   List<String>? genericName;
+  String? cartType;
+  bool? showLocation;
 
   Item({
     this.id,
@@ -143,6 +145,8 @@ class Item {
     this.nutritionsName,
     this.allergiesName,
     this.genericName,
+    this.cartType,
+    this.showLocation,
   });
 
   Item.fromJson(Map<String, dynamic> json) {
@@ -223,6 +227,25 @@ class Item {
     nutritionsName = json['nutritions_name']?.cast<String>();
     allergiesName = json['allergies_name']?.cast<String>();
     genericName = json['generic_name']?.cast<String>();
+    cartType = json['cart_type']?.toString();
+    if (cartType == null && json['store'] is Map) {
+      cartType = json['store']['cart_type']?.toString();
+    }
+    showLocation = _parseBoolField(json['show_location']);
+    if (showLocation == null && json['store'] is Map) {
+      showLocation = _parseBoolField(json['store']['show_location']);
+    }
+  }
+
+  static bool? _parseBoolField(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) {
+      if (value == '1' || value.toLowerCase() == 'true') return true;
+      if (value == '0' || value.toLowerCase() == 'false') return false;
+    }
+    return null;
   }
 
   Map<String, dynamic> toJson() {
@@ -276,6 +299,8 @@ class Item {
     data['nutritions_name'] = nutritionsName;
     data['allergies_name'] = allergiesName;
     data['generic_name'] = genericName;
+    data['cart_type'] = cartType;
+    data['show_location'] = showLocation;
     return data;
   }
 }

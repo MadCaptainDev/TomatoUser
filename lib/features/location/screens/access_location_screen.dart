@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -57,10 +56,8 @@ class _AccessLocationScreenState extends State<AccessLocationScreen> {
       canPop: true,
       onPopInvoked: (didPop) async {
         if (_canExit) {
-          if (GetPlatform.isAndroid) {
+          if (GetPlatform.isAndroid || GetPlatform.isIOS) {
             SystemNavigator.pop();
-          } else if (GetPlatform.isIOS) {
-            exit(0);
           } else {
             Navigator.pushNamed(context, RouteHelper.getInitialRoute());
           }

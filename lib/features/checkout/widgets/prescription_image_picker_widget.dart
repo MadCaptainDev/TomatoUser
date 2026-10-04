@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -8,6 +7,7 @@ import 'package:sixam_mart/features/checkout/controllers/checkout_controller.dar
 import 'package:sixam_mart/features/checkout/widgets/prescription_view_dialog_widget.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/store/widgets/camera_button_sheet_widget.dart';
+import 'package:sixam_mart/helper/platform/file_image_view.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -106,10 +106,8 @@ class PrescriptionImagePickerWidget extends StatelessWidget {
                       },
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                        child: GetPlatform.isWeb ? Image.network(
+                        child: fileImage(
                           file.path, width: 98, height: 98, fit: BoxFit.cover,
-                        ) : Image.file(
-                          File(file.path), width: 98, height: 98, fit: BoxFit.cover,
                         ),
                       ),
                     ),

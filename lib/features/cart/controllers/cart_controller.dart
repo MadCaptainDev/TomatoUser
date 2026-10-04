@@ -5,6 +5,7 @@ import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/online_cart_model.dart';
 import 'package:sixam_mart/features/cart/domain/services/cart_service_interface.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
+import 'package:sixam_mart/features/store/controllers/store_controller.dart';
 import 'package:sixam_mart/features/home/screens/home_screen.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
@@ -20,6 +21,9 @@ class CartController extends GetxController implements GetxService {
 
   List<CartModel> _cartList = [];
   List<CartModel> get cartList => _cartList;
+
+  /// Remembers store cart_type across online cart reloads (API may omit cart_type on cart items).
+  final Map<int, String> _storeCartTypeCache = {};
 
   double _subTotal = 0;
   double get subTotal => _subTotal;
@@ -191,6 +195,7 @@ class CartController extends GetxController implements GetxService {
 
   void clearCartList({bool canRemoveOnline = true}) {
     _cartList = [];
+    _storeCartTypeCache.clear();
     if((AuthHelper.isLoggedIn() || AuthHelper.isGuestLoggedIn()) && (ModuleHelper.getModule() != null || ModuleHelper.getCacheModule() != null) && canRemoveOnline) {
       clearCartOnline();
     }
@@ -200,8 +205,50 @@ class CartController extends GetxController implements GetxService {
     return cartServiceInterface.isExistInCart(_cartList, itemID, variationType, isUpdate, cartIndex);
   }
 
-  bool existAnotherStoreItem(int? storeID, int? moduleId) {
-    return cartServiceInterface.existAnotherStoreItem(storeID, moduleId, _cartList);
+  String resolveStoreCartType(Item item) {
+    if (item.cartType != null && item.cartType!.isNotEmpty) {
+      if (item.storeId != null) {
+        _storeCartTypeCache[item.storeId!] = item.cartType!;
+      }
+      return item.cartType!;
+    }
+    if (item.storeId != null && _storeCartTypeCache.containsKey(item.storeId!)) {
+      return _storeCartTypeCache[item.storeId!]!;
+    }
+    final store = Get.find<StoreController>().store;
+    if (store != null && store.id == item.storeId) {
+      final String type = store.cartType ?? 'single';
+      if (item.storeId != null) {
+        _storeCartTypeCache[item.storeId!] = type;
+      }
+      return type;
+    }
+    return 'single';
+  }
+
+  void applyStoreCartTypeToItem(Item item) {
+    item.cartType ??= resolveStoreCartType(item);
+    if (item.storeId != null && item.cartType != null) {
+      _storeCartTypeCache[item.storeId!] = item.cartType!;
+    }
+  }
+
+  void _hydrateCartItemCartTypes() {
+    for (final CartModel cart in _cartList) {
+      final Item? item = cart.item;
+      if (item == null) continue;
+      if ((item.cartType == null || item.cartType!.isEmpty) && item.storeId != null) {
+        item.cartType = _storeCartTypeCache[item.storeId!] ?? item.cartType;
+      } else if (item.storeId != null && item.cartType != null && item.cartType!.isNotEmpty) {
+        _storeCartTypeCache[item.storeId!] = item.cartType!;
+      }
+    }
+  }
+
+  bool existAnotherStoreItem(int? storeID, int? moduleId, {String? newStoreCartType, Item? item}) {
+    _hydrateCartItemCartTypes();
+    final String? cartType = newStoreCartType ?? (item != null ? resolveStoreCartType(item) : null);
+    return cartServiceInterface.existAnotherStoreItem(storeID, moduleId, _cartList, newStoreCartType: cartType);
   }
 
   void setCurrentIndex(int index, bool notify) {
@@ -219,6 +266,7 @@ class CartController extends GetxController implements GetxService {
     if(onlineCartList != null) {
       _cartList = [];
       _cartList.addAll(cartServiceInterface.formatOnlineCartToLocalCart(onlineCartModel: onlineCartList));
+      _hydrateCartItemCartTypes();
       calculationCart();
       success = true;
     }
@@ -236,6 +284,7 @@ class CartController extends GetxController implements GetxService {
     if(onlineCartList != null) {
       _cartList = [];
       _cartList.addAll(cartServiceInterface.formatOnlineCartToLocalCart(onlineCartModel: onlineCartList));
+      _hydrateCartItemCartTypes();
       calculationCart();
       success = true;
     }
@@ -265,6 +314,7 @@ class CartController extends GetxController implements GetxService {
       if(onlineCartList != null) {
         _cartList = [];
         _cartList.addAll(cartServiceInterface.formatOnlineCartToLocalCart(onlineCartModel: onlineCartList));
+        _hydrateCartItemCartTypes();
         calculationCart();
       }
       _isLoading = false;
@@ -292,6 +342,7 @@ class CartController extends GetxController implements GetxService {
     update();
     bool success = await cartServiceInterface.clearCartOnline();
     if(success) {
+      _storeCartTypeCache.clear();
       getCartDataOnline();
     }
     _isLoading = false;

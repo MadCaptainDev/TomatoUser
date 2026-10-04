@@ -7,6 +7,7 @@ import 'package:sixam_mart/features/home/controllers/home_controller.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/profile/controllers/profile_controller.dart';
+import 'package:sixam_mart/features/checkout/domain/models/place_multi_order_body_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
 import 'package:sixam_mart/features/address/domain/models/address_model.dart';
 import 'package:sixam_mart/features/cart/domain/models/cart_model.dart';
@@ -128,7 +129,12 @@ class CheckoutScreenState extends State<CheckoutScreen> {
         }
         widget.fromCart ? _cartList!.addAll(Get.find<CartController>().cartList) : _cartList!.addAll(widget.cartList!);
         if(_cartList != null && _cartList!.isNotEmpty) {
-          Get.find<CheckoutController>().initCheckoutData(_cartList![0]!.item!.storeId);
+          final List<int> storeIds = _cartList!.map((c) => c!.item!.storeId!).toSet().toList();
+          if (storeIds.length > 1) {
+            await Get.find<CheckoutController>().initMultiCheckoutData(storeIds);
+          } else {
+            await Get.find<CheckoutController>().initCheckoutData(_cartList![0]!.item!.storeId);
+          }
         }
       }
       if(widget.storeId != null){
@@ -196,10 +202,12 @@ class CheckoutScreenState extends State<CheckoutScreen> {
           if(moduleData != null) {
             maxCodOrderAmount = moduleData.maximumCodOrderAmount;
           }
+          final bool isMultiStoreCart = widget.storeId == null && checkoutController.isMultiStoreCheckout;
+
           double price = _calculatePrice(store: checkoutController.store, cartList: _cartList);
           double addOns = _calculateAddonsPrice(store: checkoutController.store, cartList: _cartList);
           double variations = _calculateVariationPrice(store: checkoutController.store, cartList: _cartList, calculateWithoutDiscount: true);
-          double? discount = _calculateDiscount(
+          double discount = _calculateDiscount(
             store: checkoutController.store, cartList: _cartList, price: price, addOns: addOns,
           );
           double couponDiscount = PriceConverter.toFixed(couponController.discount!);
@@ -218,6 +226,32 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             taxIncluded: taxIncluded, orderAmount: orderAmount, taxPercent: _taxPercent,
           );
 
+          if (isMultiStoreCart) {
+            discount = 0;
+            tax = 0;
+            for (final int storeId in _distinctStoreIds()) {
+              final Store? store = checkoutController.storeForId(storeId);
+              if (store == null) continue;
+              final List<CartModel?> storeCart = _cartForStore(storeId);
+              final double storePrice = _calculatePrice(store: store, cartList: storeCart);
+              final double storeAddOns = _calculateAddonsPrice(store: store, cartList: storeCart);
+              final double storeVariations = _calculateVariationPrice(store: store, cartList: storeCart, calculateWithoutDiscount: true);
+              final double storeDiscount = _calculateDiscount(store: store, cartList: storeCart, price: storePrice, addOns: storeAddOns);
+              discount += storeDiscount;
+              final double storeOrderAmount = _calculateOrderAmount(
+                price: storePrice, variations: storeVariations, discount: storeDiscount, addOns: storeAddOns,
+                couponDiscount: 0, cartList: storeCart, referralDiscount: 0,
+              );
+              tax += _calculateTax(taxIncluded: taxIncluded, orderAmount: storeOrderAmount, taxPercent: store.tax ?? _taxPercent);
+            }
+            discount = PriceConverter.toFixed(discount);
+            tax = PriceConverter.toFixed(tax);
+            orderAmount = _calculateOrderAmount(
+              price: price, variations: variations, discount: discount, addOns: addOns,
+              couponDiscount: couponDiscount, cartList: _cartList, referralDiscount: referralDiscount,
+            );
+          }
+
           double additionalCharge =  Get.find<SplashController>().configModel!.additionalChargeStatus!
               ? Get.find<SplashController>().configModel!.additionCharge! : 0;
           double originalCharge = _calculateOriginalDeliveryCharge(
@@ -229,12 +263,56 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             extraCharge: checkoutController.extraCharge, orderType: checkoutController.orderType!, orderAmount: orderAmount,
           );
 
-          if(checkoutController.orderType != 'take_away' && checkoutController.store != null) {
-            _deliveryChargeForView = (checkoutController.orderType == 'delivery' ? checkoutController.store!.freeDelivery! : true) ? 'free'.tr
-                : deliveryCharge != -1 ? PriceConverter.convertPrice(deliveryCharge) : 'calculating'.tr;
+          if (isMultiStoreCart) {
+            deliveryCharge = 0;
+            originalCharge = 0;
+            final AddressModel userAddress = AddressHelper.getUserAddressFromSharedPref()!;
+            for (final int storeId in _distinctStoreIds()) {
+              final Store? store = checkoutController.storeForId(storeId);
+              if (store == null) continue;
+              final double? distance = checkoutController.storeDistances?[storeId];
+              final double? extra = checkoutController.storeExtraCharges?[storeId];
+              final List<CartModel?> storeCart = _cartForStore(storeId);
+              final double storePrice = _calculatePrice(store: store, cartList: storeCart);
+              final double storeAddOns = _calculateAddonsPrice(store: store, cartList: storeCart);
+              final double storeVariations = _calculateVariationPrice(store: store, cartList: storeCart, calculateWithoutDiscount: true);
+              final double storeDiscount = _calculateDiscount(store: store, cartList: storeCart, price: storePrice, addOns: storeAddOns);
+              final double storeOrderAmount = _calculateOrderAmount(
+                price: storePrice, variations: storeVariations, discount: storeDiscount, addOns: storeAddOns,
+                couponDiscount: 0, cartList: storeCart, referralDiscount: 0,
+              );
+              originalCharge += _calculateOriginalDeliveryCharge(store: store, address: userAddress, distance: distance, extraCharge: extra);
+              deliveryCharge += _calculateDeliveryCharge(
+                store: store, address: userAddress, distance: distance, extraCharge: extra,
+                orderType: checkoutController.orderType!, orderAmount: storeOrderAmount,
+              );
+            }
           }
 
+          if(checkoutController.orderType != 'take_away' && checkoutController.store != null) {
+            if (isMultiStoreCart) {
+              final bool anyCalculating = checkoutController.storeDistances?.values.any((d) => d == -1) ?? false;
+              _deliveryChargeForView = anyCalculating ? 'calculating'.tr : PriceConverter.convertPrice(deliveryCharge);
+            } else {
+              _deliveryChargeForView = (checkoutController.orderType == 'delivery' ? checkoutController.store!.freeDelivery! : true) ? 'free'.tr
+                  : deliveryCharge != -1 ? PriceConverter.convertPrice(deliveryCharge) : 'calculating'.tr;
+            }
+          }
+
+          final Widget? multiStoreBreakdown = isMultiStoreCart
+              ? _buildMultiStoreFeeBreakdown(checkoutController, couponController, deliveryCharge)
+              : null;
+
           double extraPackagingCharge = _calculateExtraPackagingCharge(checkoutController);
+          if (isMultiStoreCart && Get.find<CartController>().needExtraPackage) {
+            extraPackagingCharge = 0;
+            for (final int storeId in _distinctStoreIds()) {
+              final Store? store = checkoutController.storeForId(storeId);
+              if ((store?.extraPackagingStatus ?? false) && store!.extraPackagingAmount != null) {
+                extraPackagingCharge += store.extraPackagingAmount!;
+              }
+            }
+          }
 
           double total = _calculateTotal(
             subTotal: subTotal, deliveryCharge: deliveryCharge, discount: discount,
@@ -299,8 +377,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                         maxCodOrderAmount: maxCodOrderAmount, storeId: widget.storeId, taxPercent: _taxPercent, price: price, addOns : addOns,
                         isPrescriptionRequired: isPrescriptionRequired, checkoutButton: _orderPlaceButton(
                           checkoutController, todayClosed, tomorrowClosed, orderAmount,
-                          deliveryCharge, tax, discount, total, maxCodOrderAmount, isPrescriptionRequired,
+                          deliveryCharge, tax, discount, total, maxCodOrderAmount, isPrescriptionRequired, isMultiStoreCart,
                         ), referralDiscount: referralDiscount, variationPrice: isPassedVariationPrice ? variations : 0,
+                        multiStoreFeeBreakdown: multiStoreBreakdown,
                       )),
                     ]),
                   ) : Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -328,8 +407,9 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                       maxCodOrderAmount: maxCodOrderAmount, storeId: widget.storeId, taxPercent: _taxPercent, price: price, addOns : addOns,
                       isPrescriptionRequired: isPrescriptionRequired, checkoutButton: _orderPlaceButton(
                         checkoutController, todayClosed, tomorrowClosed, orderAmount, deliveryCharge,
-                        tax, discount, total, maxCodOrderAmount, isPrescriptionRequired,
+                        tax, discount, total, maxCodOrderAmount, isPrescriptionRequired, isMultiStoreCart,
                       ), referralDiscount: referralDiscount, variationPrice: isPassedVariationPrice ? variations : 0,
+                      multiStoreFeeBreakdown: multiStoreBreakdown,
                     )
                   ]),
                 )),
@@ -357,7 +437,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                     ),
 
                     _orderPlaceButton(
-                        checkoutController, todayClosed, tomorrowClosed, orderAmount, deliveryCharge, tax, discount, total, maxCodOrderAmount, isPrescriptionRequired,
+                        checkoutController, todayClosed, tomorrowClosed, orderAmount, deliveryCharge, tax, discount, total, maxCodOrderAmount, isPrescriptionRequired, isMultiStoreCart,
                     ),
                   ],
                 ),
@@ -375,7 +455,7 @@ class CheckoutScreenState extends State<CheckoutScreen> {
 
 
   Widget _orderPlaceButton(CheckoutController checkoutController, bool todayClosed, bool tomorrowClosed,
-      double orderAmount, double? deliveryCharge, double tax, double? discount, double total, double? maxCodOrderAmount, bool isPrescriptionRequired) {
+      double orderAmount, double? deliveryCharge, double tax, double? discount, double total, double? maxCodOrderAmount, bool isPrescriptionRequired, bool isMultiStoreCart) {
     return Container(
       width: Dimensions.webMaxWidth,
       alignment: Alignment.center,
@@ -399,12 +479,13 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             scheduleEndDate = DateTime(date.year, date.month, date.day, endTime.hour, endTime.minute+1);
             if(_cartList != null){
               for (CartModel? cart in _cartList!) {
+                final Store? itemStore = checkoutController.storeForId(cart!.item!.storeId) ?? checkoutController.store;
                 if (!DateConverter.isAvailable(
-                  cart!.item!.availableTimeStarts, cart.item!.availableTimeEnds,
-                  time: checkoutController.store!.scheduleOrder! ? scheduleStartDate : null,
+                  cart.item!.availableTimeStarts, cart.item!.availableTimeEnds,
+                  time: itemStore!.scheduleOrder! ? scheduleStartDate : null,
                 ) && !DateConverter.isAvailable(
                   cart.item!.availableTimeStarts, cart.item!.availableTimeEnds,
-                  time: checkoutController.store!.scheduleOrder! ? scheduleEndDate : null,
+                  time: itemStore.scheduleOrder! ? scheduleEndDate : null,
                 )) {
                   isAvailable = false;
                   break;
@@ -446,7 +527,30 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               );
             }
-          } else if(orderAmount < checkoutController.store!.minimumOrder! && widget.storeId == null) {
+          } else if(widget.storeId == null && isMultiStoreCart) {
+            bool belowMinimum = false;
+            for (final int storeId in _distinctStoreIds()) {
+              final Store? store = checkoutController.storeForId(storeId);
+              if (store == null) continue;
+              final List<CartModel?> storeCart = _cartForStore(storeId);
+              final double storePrice = _calculatePrice(store: store, cartList: storeCart);
+              final double storeAddOns = _calculateAddonsPrice(store: store, cartList: storeCart);
+              final double storeVariations = _calculateVariationPrice(store: store, cartList: storeCart, calculateWithoutDiscount: true);
+              final double storeDiscount = _calculateDiscount(store: store, cartList: storeCart, price: storePrice, addOns: storeAddOns);
+              final double storeOrderAmount = _calculateOrderAmount(
+                price: storePrice, variations: storeVariations, discount: storeDiscount, addOns: storeAddOns,
+                couponDiscount: 0, cartList: storeCart, referralDiscount: 0,
+              );
+              if (storeOrderAmount < store.minimumOrder!) {
+                belowMinimum = true;
+                showCustomSnackBar('${store.name}: ${'minimum_order_amount_is'.tr} ${store.minimumOrder}');
+                break;
+              }
+            }
+            if (belowMinimum) {
+              return;
+            }
+          } else if(orderAmount < checkoutController.store!.minimumOrder! && widget.storeId == null && !isMultiStoreCart) {
             showCustomSnackBar('${'minimum_order_amount_is'.tr} ${checkoutController.store!.minimumOrder}');
           }else if(checkoutController.tipController.text.isNotEmpty && checkoutController.tipController.text != 'not_now' && double.parse(checkoutController.tipController.text.trim()) < 0) {
             showCustomSnackBar('tips_can_not_be_negative'.tr);
@@ -466,7 +570,10 @@ class CheckoutScreenState extends State<CheckoutScreen> {
             }
           }else if (!isAvailable) {
             showCustomSnackBar('one_or_more_products_are_not_available_for_this_selected_time'.tr);
-          }else if (checkoutController.orderType != 'take_away' && checkoutController.distance == -1 && deliveryCharge == -1) {
+          }else if (checkoutController.orderType != 'take_away' && (
+              isMultiStoreCart
+                  ? (checkoutController.storeDistances?.values.any((d) => d == -1) ?? true) || deliveryCharge == -1
+                  : checkoutController.distance == -1 && deliveryCharge == -1)) {
             showCustomSnackBar('delivery_fee_not_set_yet'.tr);
           }else if (widget.storeId != null && checkoutController.pickedPrescriptions.isEmpty) {
             showCustomSnackBar('please_upload_your_prescription_images'.tr);
@@ -554,7 +661,74 @@ class CheckoutScreenState extends State<CheckoutScreen> {
                 createNewUser: checkoutController.isCreateAccount ? 1 : 0, password: guestPasswordController.text,
               );
 
-              if(checkoutController.paymentMethodIndex == 3){
+              final String? sharedCouponCode = (Get.find<CouponController>().discount! > 0 || (Get.find<CouponController>().coupon != null
+                  && Get.find<CouponController>().freeDelivery)) ? Get.find<CouponController>().coupon!.code : null;
+
+              if (isMultiStoreCart) {
+                double multiExtraPackaging = 0;
+                if (Get.find<CartController>().needExtraPackage) {
+                  for (final int storeId in _distinctStoreIds()) {
+                    final Store? store = checkoutController.storeForId(storeId);
+                    if ((store?.extraPackagingStatus ?? false) && store!.extraPackagingAmount != null) {
+                      multiExtraPackaging += store.extraPackagingAmount!;
+                    }
+                  }
+                }
+
+                final List<PlaceMultiStoreEntry> storeEntries = _distinctStoreIds().map((storeId) {
+                  return PlaceMultiStoreEntry(
+                    storeId: storeId,
+                    distance: checkoutController.storeDistances?[storeId] ?? checkoutController.distance ?? 0,
+                    orderNote: checkoutController.noteController.text,
+                    couponCode: sharedCouponCode,
+                  );
+                }).toList();
+
+                final PlaceMultiOrderBodyModel placeMultiOrderBody = PlaceMultiOrderBodyModel(
+                  cart: carts,
+                  couponDiscountAmount: Get.find<CouponController>().discount,
+                  orderAmount: total,
+                  orderType: checkoutController.orderType,
+                  paymentMethod: checkoutController.paymentMethodIndex == 0 ? 'cash_on_delivery'
+                      : checkoutController.paymentMethodIndex == 1 ? 'wallet'
+                      : checkoutController.paymentMethodIndex == 2 ? 'digital_payment' : 'offline_payment',
+                  scheduleAt: !checkoutController.store!.scheduleOrder! ? null : (checkoutController.selectedDateSlot == 0
+                      && checkoutController.selectedTimeSlot == 0) ? null : DateConverter.dateToDateAndTime(scheduleEndDate),
+                  discountAmount: discount,
+                  taxAmount: tax,
+                  address: finalAddress!.address,
+                  latitude: finalAddress.latitude,
+                  longitude: finalAddress.longitude,
+                  senderZoneId: null,
+                  contactPersonName: finalAddress.contactPersonName ?? '${Get.find<ProfileController>().userInfoModel!.fName} '
+                      '${Get.find<ProfileController>().userInfoModel!.lName}',
+                  contactPersonNumber: finalAddress.contactPersonNumber ?? Get.find<ProfileController>().userInfoModel!.phone,
+                  receiverDetails: null,
+                  addressType: finalAddress.addressType,
+                  parcelCategoryId: null,
+                  chargePayer: null,
+                  streetNumber: isGuestLogIn ? finalAddress.streetNumber ?? '' : checkoutController.streetNumberController.text.trim(),
+                  house: isGuestLogIn ? finalAddress.house ?? '' : checkoutController.houseController.text.trim(),
+                  floor: isGuestLogIn ? finalAddress.floor ?? '' : checkoutController.floorController.text.trim(),
+                  dmTips: (checkoutController.orderType == 'take_away' || checkoutController.tipController.text == 'not_now') ? '' : checkoutController.tipController.text.trim(),
+                  unavailableItemNote: Get.find<CartController>().notAvailableIndex != -1 ? Get.find<CartController>().notAvailableList[Get.find<CartController>().notAvailableIndex] : '',
+                  deliveryInstruction: checkoutController.selectedInstruction != -1 ? AppConstants.deliveryInstructionList[checkoutController.selectedInstruction] : '',
+                  cutlery: Get.find<CartController>().addCutlery ? 1 : 0,
+                  partialPayment: checkoutController.isPartialPay ? 1 : 0,
+                  guestId: isGuestLogIn ? int.parse(AuthHelper.getGuestId()) : 0,
+                  isBuyNow: widget.fromCart ? 0 : 1,
+                  guestEmail: isGuestLogIn ? finalAddress.email : null,
+                  extraPackagingAmount: multiExtraPackaging,
+                  createNewUser: checkoutController.isCreateAccount ? 1 : 0,
+                  password: guestPasswordController.text,
+                  stores: storeEntries,
+                );
+
+                checkoutController.placeMultiOrder(
+                  placeMultiOrderBody, checkoutController.store!.zoneId, total, maxCodOrderAmount, widget.fromCart,
+                  _isCashOnDeliveryActive!, checkoutController.pickedPrescriptions,
+                );
+              } else if(checkoutController.paymentMethodIndex == 3){
                 Get.toNamed(RouteHelper.getOfflinePaymentScreen(
                   placeOrderBody: placeOrderBody, zoneId: checkoutController.store!.zoneId!, total: checkoutController.viewTotalPrice!,
                   maxCodOrderAmount: maxCodOrderAmount, fromCart: widget.fromCart, isCodActive: _isCashOnDeliveryActive, forParcel: false,
@@ -978,6 +1152,65 @@ class CheckoutScreenState extends State<CheckoutScreen> {
       }
     }
     return PriceConverter.toFixed(referralDiscount);
+  }
+
+  Set<int> _distinctStoreIds() {
+    if (_cartList == null) return {};
+    return _cartList!.map((cart) => cart!.item!.storeId!).toSet();
+  }
+
+  List<CartModel?> _cartForStore(int storeId) {
+    return _cartList!.where((cart) => cart!.item!.storeId == storeId).toList();
+  }
+
+  Widget _buildMultiStoreFeeBreakdown(CheckoutController checkoutController, CouponController couponController, double totalDeliveryCharge) {
+    final AddressModel userAddress = AddressHelper.getUserAddressFromSharedPref()!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeSmall),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: _distinctStoreIds().map((storeId) {
+          final Store? store = checkoutController.storeForId(storeId);
+          if (store == null) return const SizedBox();
+          final List<CartModel?> storeCart = _cartForStore(storeId);
+          final double storePrice = _calculatePrice(store: store, cartList: storeCart);
+          final double storeAddOns = _calculateAddonsPrice(store: store, cartList: storeCart);
+          final double storeVariations = _calculateVariationPrice(store: store, cartList: storeCart, calculateWithoutDiscount: true);
+          final double storeDiscount = _calculateDiscount(store: store, cartList: storeCart, price: storePrice, addOns: storeAddOns);
+          final double storeSubTotal = _calculateSubTotal(price: storePrice, addOns: storeAddOns, variations: storeVariations, cartList: storeCart);
+          final double storeOrderAmount = _calculateOrderAmount(
+            price: storePrice, variations: storeVariations, discount: storeDiscount, addOns: storeAddOns,
+            couponDiscount: 0, cartList: storeCart, referralDiscount: 0,
+          );
+          final double? distance = checkoutController.storeDistances?[storeId];
+          final double? extra = checkoutController.storeExtraCharges?[storeId];
+          final double storeDelivery = _calculateDeliveryCharge(
+            store: store, address: userAddress, distance: distance, extraCharge: extra,
+            orderType: checkoutController.orderType!, orderAmount: storeOrderAmount,
+          );
+          final double storeTotal = storeSubTotal - storeDiscount + storeDelivery;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeExtraSmall),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(store.name ?? 'Store $storeId', style: robotoMedium),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('item_price'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                Text(PriceConverter.convertPrice(storeSubTotal), style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall), textDirection: TextDirection.ltr),
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('delivery_fee'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                Text(PriceConverter.convertPrice(storeDelivery), style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall), textDirection: TextDirection.ltr),
+              ]),
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                Text('subtotal'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall)),
+                Text(PriceConverter.convertPrice(storeTotal), style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeSmall), textDirection: TextDirection.ltr),
+              ]),
+              const Divider(height: 8),
+            ]),
+          );
+        }).toList(),
+      ),
+    );
   }
 
   Future<void> showCashBackSnackBar() async {

@@ -310,11 +310,18 @@ class CartService implements CartServiceInterface {
     return -1;
   }
 
+  static bool _isSingleCartType(String? cartType) {
+    return cartType == null || cartType == 'single';
+  }
+
   @override
-  bool existAnotherStoreItem(int? storeID, int? moduleId, List<CartModel> cartList) {
-    for(CartModel cartModel in cartList) {
-      if(cartModel.item!.storeId != storeID && cartModel.item!.moduleId == moduleId) {
-        return true;
+  bool existAnotherStoreItem(int? storeID, int? moduleId, List<CartModel> cartList, {String? newStoreCartType}) {
+    final bool newStoreIsSingle = _isSingleCartType(newStoreCartType);
+    for (CartModel cartModel in cartList) {
+      if (cartModel.item!.storeId != storeID && cartModel.item!.moduleId == moduleId) {
+        if (newStoreIsSingle || _isSingleCartType(cartModel.item!.cartType)) {
+          return true;
+        }
       }
     }
     return false;

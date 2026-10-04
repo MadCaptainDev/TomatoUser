@@ -155,15 +155,18 @@ class _TrackingMapWidgetState extends State<TrackingMapWidget> {
       )) : const SizedBox();
 
       ///store for normal order , but receiver for parcel order
-      store != null ? _markers.add(Marker(
-        markerId: const MarkerId('store'),
-        position: LatLng(double.parse(store.latitude!), double.parse(store.longitude!)),
-        infoWindow: InfoWindow(
-          title: parcel ? 'Receiver' : Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! ? 'store'.tr : 'store'.tr,
-          snippet: store.address,
-        ),
-        icon: restaurantImageData,
-      )) : const SizedBox();
+      final showStoreMarker = store != null && (parcel || store.isLocationVisible);
+      if (showStoreMarker) {
+        _markers.add(Marker(
+          markerId: const MarkerId('store'),
+          position: LatLng(double.parse(store.latitude!), double.parse(store.longitude!)),
+          infoWindow: InfoWindow(
+            title: parcel ? 'Receiver' : Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! ? 'store'.tr : 'store'.tr,
+            snippet: store.address,
+          ),
+          icon: restaurantImageData,
+        ));
+      }
 
       deliveryMan != null ? _markers.add(Marker(
         markerId: const MarkerId('delivery_boy'),

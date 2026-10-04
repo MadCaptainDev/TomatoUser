@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:sixam_mart/common/widgets/custom_asset_image_widget.dart';
 import 'package:sixam_mart/common/widgets/custom_tool_tip_widget.dart';
 import 'package:sixam_mart/features/item/controllers/item_controller.dart';
@@ -11,6 +12,7 @@ import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/price_converter.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -86,34 +88,41 @@ class ItemTitleViewWidget extends StatelessWidget {
             ),
             const SizedBox(width: Dimensions.paddingSizeSmall),
 
-            item!.availableTimeStarts != null ? const SizedBox() : Container(
-              padding: const EdgeInsets.all(8), alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-              ),
-              child: GetBuilder<FavouriteController>(
-                  builder: (favouriteController) {
-                    return InkWell(
-                      onTap: () {
-                        if(AuthHelper.isLoggedIn()){
-                          if(favouriteController.wishItemIdList.contains(itemController.item!.id)) {
-                            favouriteController.removeFromFavouriteList(itemController.item!.id, false);
+            item!.availableTimeStarts != null ? const SizedBox() : Row(mainAxisSize: MainAxisSize.min, children: [
+              Container(
+                padding: const EdgeInsets.all(8), alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+                ),
+                child: GetBuilder<FavouriteController>(
+                    builder: (favouriteController) {
+                      return InkWell(
+                        onTap: () {
+                          if(AuthHelper.isLoggedIn()){
+                            if(favouriteController.wishItemIdList.contains(itemController.item!.id)) {
+                              favouriteController.removeFromFavouriteList(itemController.item!.id, false);
+                            }else {
+                              favouriteController.addToFavouriteList(itemController.item, null, false);
+                            }
                           }else {
-                            favouriteController.addToFavouriteList(itemController.item, null, false);
+                            showCustomSnackBar('you_are_not_logged_in'.tr);
                           }
-                        }else {
-                          showCustomSnackBar('you_are_not_logged_in'.tr);
-                        }
-                      },
-                      child: Icon(
-                        favouriteController.wishItemIdList.contains(itemController.item!.id) ? Icons.favorite : Icons.favorite_border, size: 25,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    );
-                  }
+                        },
+                        child: Icon(
+                          favouriteController.wishItemIdList.contains(itemController.item!.id) ? Icons.favorite : Icons.favorite_border, size: 25,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      );
+                    }
+                ),
               ),
-            ),
+              const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+              InkWell(
+                onTap: () => Share.share('${AppConstants.webHostedUrl}/item-details?id=${item!.id}'),
+                child: Icon(Icons.share_outlined, size: 25, color: Theme.of(context).disabledColor),
+              ),
+            ]),
           ]),
           const SizedBox(height: Dimensions.paddingSizeSmall),
 
@@ -218,23 +227,30 @@ class ItemTitleViewWidget extends StatelessWidget {
               ),
 
               GetBuilder<FavouriteController>(builder: (favouriteController) {
-                return InkWell(
-                  onTap: () {
-                    if(isLoggedIn){
-                      if(favouriteController.wishItemIdList.contains(item!.id)) {
-                        favouriteController.removeFromFavouriteList(item!.id, false);
+                return Row(mainAxisSize: MainAxisSize.min, children: [
+                  InkWell(
+                    onTap: () {
+                      if(isLoggedIn){
+                        if(favouriteController.wishItemIdList.contains(item!.id)) {
+                          favouriteController.removeFromFavouriteList(item!.id, false);
+                        }else {
+                          favouriteController.addToFavouriteList(item, null, false);
+                        }
                       }else {
-                        favouriteController.addToFavouriteList(item, null, false);
+                        showCustomSnackBar('you_are_not_logged_in'.tr);
                       }
-                    }else {
-                      showCustomSnackBar('you_are_not_logged_in'.tr);
-                    }
-                  },
-                  child: Icon(
-                    favouriteController.wishItemIdList.contains(item!.id) ? Icons.favorite : Icons.favorite_border, size: 30,
-                    color: favouriteController.wishItemIdList.contains(item!.id) ? Theme.of(context).primaryColor : Theme.of(context).disabledColor,
+                    },
+                    child: Icon(
+                      favouriteController.wishItemIdList.contains(item!.id) ? Icons.favorite : Icons.favorite_border, size: 30,
+                      color: favouriteController.wishItemIdList.contains(item!.id) ? Theme.of(context).primaryColor : Theme.of(context).disabledColor,
+                    ),
                   ),
-                );
+                  const SizedBox(width: Dimensions.paddingSizeSmall),
+                  InkWell(
+                    onTap: () => Share.share('${AppConstants.webHostedUrl}/item-details?id=${item!.id}'),
+                    child: Icon(Icons.share_outlined, size: 28, color: Theme.of(context).disabledColor),
+                  ),
+                ]);
               }),
 
             ]),

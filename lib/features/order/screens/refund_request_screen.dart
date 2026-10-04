@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
+import 'package:sixam_mart/helper/platform/file_image_view.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/custom_app_bar.dart';
@@ -102,10 +101,8 @@ class _RefundRequestScreenState extends State<RefundRequestScreen> {
                               child: Stack(children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-                                  child: orderController.refundImage != null ? GetPlatform.isWeb ? Image.network(
+                                  child: orderController.refundImage != null ? fileImage(
                                     orderController.refundImage!.path, width: context.width, height: 150, fit: BoxFit.cover,
-                                  ) : Image.file(
-                                    File(orderController.refundImage!.path), width: context.width, height: 150, fit: BoxFit.cover,
                                   ) : InkWell(
                                     onTap: () => orderController.pickRefundImage(false),
                                     child: Container(

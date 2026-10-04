@@ -18,7 +18,9 @@ import 'package:sixam_mart/features/checkout/domain/models/distance_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/features/order/controllers/order_controller.dart';
 import 'package:sixam_mart/features/payment/domain/models/offline_method_model.dart';
+import 'package:sixam_mart/features/checkout/domain/models/place_multi_order_body_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
+import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/features/checkout/domain/models/timeslote_model.dart';
 import 'package:sixam_mart/features/checkout/domain/services/checkout_service_interface.dart';
 import 'package:sixam_mart/features/checkout/widgets/order_successfull_dialog.dart';
@@ -74,6 +76,23 @@ class CheckoutController extends GetxController implements GetxService {
 
   Store? _store;
   Store? get store => _store;
+
+  bool _isMultiStoreCheckout = false;
+  bool get isMultiStoreCheckout => _isMultiStoreCheckout;
+
+  Map<int, Store>? _storesById;
+  Map<int, Store>? get storesById => _storesById;
+
+  Map<int, double>? _storeDistances;
+  Map<int, double>? get storeDistances => _storeDistances;
+
+  Map<int, double>? _storeExtraCharges;
+  Map<int, double>? get storeExtraCharges => _storeExtraCharges;
+
+  Store? storeForId(int? storeId) {
+    if (storeId == null) return _store;
+    return _storesById?[storeId] ?? (_store?.id == storeId ? _store : null);
+  }
 
   int? _addressIndex = 0;
   int? get addressIndex => _addressIndex;
@@ -143,6 +162,65 @@ class CheckoutController extends GetxController implements GetxService {
     clearPrevData();
     _store = await Get.find<StoreController>().getStoreDetails(Store(id: storeId), false);
     initializeTimeSlot(_store!);
+  }
+
+  Future<void> initMultiCheckoutData(List<int> storeIds) async {
+    Get.find<CouponController>().removeCouponData(false);
+    clearPrevData();
+    _isMultiStoreCheckout = storeIds.length > 1;
+    _storesById = {};
+    _storeDistances = {};
+    _storeExtraCharges = {};
+
+    for (final int id in storeIds) {
+      final Store? details = await Get.find<StoreController>().getStoreDetails(Store(id: id), false);
+      if (details != null) {
+        _storesById![id] = details;
+      }
+    }
+
+    _store = _storesById![storeIds.first];
+    if (_store != null) {
+      initializeTimeSlot(_store!);
+    }
+
+    final address = AddressHelper.getUserAddressFromSharedPref();
+    if (address != null) {
+      final LatLng origin = LatLng(double.parse(address.latitude!), double.parse(address.longitude!));
+      for (final int id in storeIds) {
+        final Store? storeDetails = _storesById![id];
+        if (storeDetails == null) continue;
+        final double? km = await _resolveDistanceKm(
+          origin,
+          LatLng(double.parse(storeDetails.latitude!), double.parse(storeDetails.longitude!)),
+        );
+        _storeDistances![id] = km ?? -1;
+        _storeExtraCharges![id] = await checkoutServiceInterface.getExtraCharge(km);
+      }
+    }
+
+    _distance = _storeDistances![storeIds.first];
+    _extraCharge = _storeExtraCharges![storeIds.first];
+    update();
+  }
+
+  Future<double?> _resolveDistanceKm(LatLng originLatLng, LatLng destinationLatLng) async {
+    double? distanceKm;
+    final Response response = await checkoutServiceInterface.getDistanceInMeter(originLatLng, destinationLatLng);
+    try {
+      if (response.statusCode == 200 && response.body['status'] == 'OK') {
+        distanceKm = DistanceModel.fromJson(response.body).rows![0].elements![0].distance!.value! / 1000;
+      } else {
+        distanceKm = Geolocator.distanceBetween(
+          originLatLng.latitude, originLatLng.longitude, destinationLatLng.latitude, destinationLatLng.longitude,
+        ) / 1000;
+      }
+    } catch (e) {
+      distanceKm = Geolocator.distanceBetween(
+        originLatLng.latitude, originLatLng.longitude, destinationLatLng.latitude, destinationLatLng.longitude,
+      ) / 1000;
+    }
+    return distanceKm;
   }
 
   void showTipsField(){
@@ -251,6 +329,10 @@ class CheckoutController extends GetxController implements GetxService {
     _distance = null;
     _orderAttachment = null;
     _rawAttachment = null;
+    _isMultiStoreCheckout = false;
+    _storesById = null;
+    _storeDistances = null;
+    _storeExtraCharges = null;
   }
 
   Future<void> initializeTimeSlot(Store store) async {
@@ -411,6 +493,119 @@ class CheckoutController extends GetxController implements GetxService {
     update();
 
     return orderID;
+  }
+
+  List<String> _parseMultiOrderIds(Map<String, dynamic> body) {
+    final List<String> orderIds = [];
+    if (body['order_ids'] != null) {
+      for (final dynamic id in body['order_ids']) {
+        orderIds.add(id.toString());
+      }
+    } else if (body['orders'] != null) {
+      for (final dynamic order in body['orders']) {
+        if (order is Map && order['id'] != null) {
+          orderIds.add(order['id'].toString());
+        }
+      }
+    } else if (body['order_id'] != null) {
+      orderIds.add(body['order_id'].toString());
+    }
+    return orderIds;
+  }
+
+  Future<List<String>> placeMultiOrder(PlaceMultiOrderBodyModel placeOrderBody, int? zoneID, double amount, double? maximumCodOrderAmount, bool fromCart, bool isCashOnDeliveryActive, List<XFile>? orderAttachment, {bool isOfflinePay = false}) async {
+    List<MultipartBody>? multiParts = [];
+    for (XFile file in orderAttachment!) {
+      multiParts.add(MultipartBody('order_attachment[]', file));
+    }
+    _isLoading = true;
+    update();
+    List<String> orderIds = [];
+    String userID = '';
+    final Response response = await checkoutServiceInterface.placeMultiOrder(placeOrderBody, multiParts);
+    _isLoading = false;
+    if (response.statusCode == 200) {
+      final String? message = response.body['message'];
+      orderIds = _parseMultiOrderIds(response.body);
+      if (response.body['user_id'] != null) {
+        userID = response.body['user_id'].toString();
+      }
+      final String paymentRef = response.body['order_group_id']?.toString() ?? (orderIds.isNotEmpty ? orderIds.first : '-1');
+
+      if (!isOfflinePay) {
+        multiOrderCallback(true, message, orderIds, paymentRef, zoneID, amount, maximumCodOrderAmount, fromCart, isCashOnDeliveryActive, placeOrderBody.contactPersonNumber, userID);
+      } else {
+        Get.find<CartController>().getCartDataOnline();
+      }
+      _orderAttachment = null;
+      _rawAttachment = null;
+    } else {
+      if (!isOfflinePay) {
+        multiOrderCallback(false, response.statusText, orderIds, '-1', zoneID, amount, maximumCodOrderAmount, fromCart, isCashOnDeliveryActive, placeOrderBody.contactPersonNumber, userID);
+      } else {
+        showCustomSnackBar(response.statusText);
+      }
+    }
+    update();
+    return orderIds;
+  }
+
+  void multiOrderCallback(
+      bool isSuccess, String? message, List<String> orderIds, String paymentOrderRef, int? zoneID, double amount,
+      double? maximumCodOrderAmount, bool fromCart, bool isCashOnDeliveryActive, String? contactNumber,
+      String userID) async {
+
+    if (isSuccess) {
+      if (fromCart) {
+        Get.find<CartController>().clearCartList();
+      }
+      setGuestAddress(null);
+      if (!Get.find<OrderController>().showBottomSheet) {
+        Get.find<OrderController>().showRunningOrders(canUpdate: false);
+      }
+      if (isDmTipSave) {
+        saveSharedPrefDmTipIndex(selectedTips.toString());
+      }
+      stopLoader(canUpdate: false);
+      HomeScreen.loadData(true);
+      final String orderIdsParam = orderIds.join(',');
+      if (paymentMethodIndex == 2) {
+        if (GetPlatform.isWeb) {
+          await Get.find<AuthController>().saveGuestNumber(contactNumber ?? '');
+          String? hostname = html.window.location.hostname;
+          String protocol = html.window.location.protocol;
+          final String selectedUrl = '${AppConstants.baseUrl}/payment-mobile?order_id=$paymentOrderRef&&customer_id=${Get.find<ProfileController>().userInfoModel?.id ?? (userID.isNotEmpty ? userID : AuthHelper.getGuestId())}'
+              '&payment_method=$digitalPaymentName&payment_platform=web&&callback=$protocol//$hostname${RouteHelper.orderSuccess}?id=$orderIdsParam&status=';
+
+          html.window.open(selectedUrl, "_self");
+        } else {
+          Get.offNamed(RouteHelper.getPaymentRoute(
+            paymentOrderRef, Get.find<ProfileController>().userInfoModel?.id ?? (userID.isNotEmpty ? int.parse(userID) : 0), orderType, amount,
+            isCashOnDeliveryActive, digitalPaymentName, guestId: userID.isNotEmpty ? userID : AuthHelper.getGuestId(),
+            contactNumber: contactNumber,
+          ));
+        }
+      } else {
+        double total = ((amount / 100) * Get.find<SplashController>().configModel!.loyaltyPointItemPurchasePoint!);
+        if (AuthHelper.isLoggedIn()) {
+          Get.find<AuthController>().saveEarningPoint(total.toStringAsFixed(0));
+        }
+        if (ResponsiveHelper.isDesktop(Get.context) && AuthHelper.isLoggedIn()) {
+          Get.offNamed(RouteHelper.getInitialRoute());
+          Future.delayed(const Duration(seconds: 2), () => Get.dialog(Center(child: SizedBox(height: 350, width: 500, child: OrderSuccessfulDialog(orderID: orderIdsParam)))));
+        } else {
+          Get.offNamed(RouteHelper.getOrderSuccessRoute(orderIdsParam, contactNumber, createAccount: _isCreateAccount));
+        }
+      }
+      clearPrevData();
+      Get.find<CouponController>().removeCouponData(false);
+      updateTips(
+        getSharedPrefDmTipIndex().isNotEmpty ? int.parse(getSharedPrefDmTipIndex()) : 0,
+        notify: false,
+      );
+    } else {
+      showCustomSnackBar(message);
+    }
   }
 
   Future<void> placePrescriptionOrder(int? storeId, int? zoneID, double? distance, String address, String longitude, String latitude, String note, List<XFile> orderAttachment,

@@ -12,7 +12,7 @@ class AppConstants {
   static const String fontFamily = 'Gilroy';
   static const bool payInWevView = false;
   static const int balanceInputLen = 10;
-  static const String webHostedUrl = 'http://93.127.195.169';
+  static const String webHostedUrl = 'https://app.tomatodeliverz.com';
   static const bool useReactWebsite = false;
 
   static const String baseUrl = 'http://93.127.195.169';
@@ -38,6 +38,7 @@ class AppConstants {
   static const String loginUri = '/api/v1/auth/login';
   static const String tokenUri = '/api/v1/customer/cm-firebase-token';
   static const String placeOrderUri = '/api/v1/customer/order/place';
+  static const String placeMultiOrderUri = '/api/v1/customer/order/place-multi';
   static const String placePrescriptionOrderUri =
       '/api/v1/customer/order/prescription/place';
   static const String addressListUri = '/api/v1/customer/address/list';

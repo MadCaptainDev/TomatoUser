@@ -57,21 +57,22 @@ class VisitAgainCard extends StatelessWidget {
               Text("(${store.ratingCount})", style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: Theme.of(context).disabledColor)),
             ]),
 
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
-              child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                Icon(Icons.storefront_outlined, size: 20, color: Theme.of(context).disabledColor),
-                const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+            if (store.isLocationVisible)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeSmall),
+                child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                  Icon(Icons.storefront_outlined, size: 20, color: Theme.of(context).disabledColor),
+                  const SizedBox(width: Dimensions.paddingSizeExtraSmall),
 
-                Flexible(
-                  child: Text(
-                    store.address ?? '',
-                    overflow: TextOverflow.ellipsis, maxLines: 1,
-                    style: robotoRegular.copyWith(color: Theme.of(context).disabledColor),
+                  Flexible(
+                    child: Text(
+                      store.address ?? '',
+                      overflow: TextOverflow.ellipsis, maxLines: 1,
+                      style: robotoRegular.copyWith(color: Theme.of(context).disabledColor),
+                    ),
                   ),
-                ),
-              ]),
-            ),
+                ]),
+              ),
 
             store.items != null ? Container(
               alignment: Alignment.center,

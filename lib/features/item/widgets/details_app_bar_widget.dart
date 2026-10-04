@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:sixam_mart/features/cart/controllers/cart_controller.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
 class DetailsAppBarWidget extends StatefulWidget implements PreferredSizeWidget {
-  const DetailsAppBarWidget({super.key});
+  final int? itemId;
+  const DetailsAppBarWidget({super.key, this.itemId});
 
   @override
   DetailsAppBarWidgetState createState() => DetailsAppBarWidgetState();
@@ -52,7 +55,17 @@ class DetailsAppBarWidgetState extends State<DetailsAppBarWidget> with SingleTic
         style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge, color: Theme.of(context).textTheme.bodyLarge!.color),
       ),
       centerTitle: true,
-      actions: [AnimatedBuilder(
+      actions: [
+        if (widget.itemId != null)
+          IconButton(
+            icon: Icon(Icons.share_outlined, color: Theme.of(context).textTheme.bodyLarge!.color),
+            onPressed: () => Share.share('${AppConstants.webHostedUrl}/item-details?id=${widget.itemId}'),
+          ),
+        IconButton(
+          icon: Icon(Icons.home_outlined, color: Theme.of(context).textTheme.bodyLarge!.color),
+          onPressed: () => Get.offAllNamed(RouteHelper.getMainRoute('home')),
+        ),
+        AnimatedBuilder(
         animation: offsetAnimation,
         builder: (buildContext, child) {
           return Container(
@@ -79,7 +92,8 @@ class DetailsAppBarWidgetState extends State<DetailsAppBarWidget> with SingleTic
             ]),
           );
         },
-      )],
+      ),
+      ],
     );
   }
 }

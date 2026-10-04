@@ -16,7 +16,30 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Function(String value)? onVegFilterTap;
   final String? type;
   final String? leadingIcon;
-  const CustomAppBar({super.key, required this.title, this.backButton = true, this.onBackPressed, this.showCart = false, this.leadingIcon, this.onVegFilterTap, this.type});
+  final bool showHome;
+  const CustomAppBar({super.key, required this.title, this.backButton = true, this.onBackPressed, this.showCart = false, this.showHome = false, this.leadingIcon, this.onVegFilterTap, this.type});
+
+  List<Widget> _buildActions(BuildContext context) {
+    final actions = <Widget>[
+      if (showHome)
+        IconButton(
+          onPressed: () => Get.offAllNamed(RouteHelper.getMainRoute('home')),
+          icon: Icon(Icons.home_outlined, color: Theme.of(context).textTheme.bodyLarge!.color),
+        ),
+      if (showCart)
+        IconButton(
+          onPressed: () => Get.toNamed(RouteHelper.getCartRoute()),
+          icon: CartWidget(color: Theme.of(context).textTheme.bodyLarge!.color, size: 25),
+        ),
+      if (onVegFilterTap != null)
+        VegFilterWidget(
+          type: type,
+          onSelected: onVegFilterTap,
+          fromAppBar: true,
+        ),
+    ];
+    return actions.isEmpty ? [const SizedBox()] : actions;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,19 +55,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       surfaceTintColor: Theme.of(context).cardColor,
       shadowColor: Theme.of(context).disabledColor.withOpacity(0.5),
       elevation: 2,
-      actions: showCart || onVegFilterTap != null ? [
-        showCart ? IconButton(
-          onPressed: () => Get.toNamed(RouteHelper.getCartRoute()),
-          icon: CartWidget(color: Theme.of(context).textTheme.bodyLarge!.color, size: 25),
-        ) : const SizedBox(),
-
-        onVegFilterTap != null ? VegFilterWidget(
-          type: type,
-          onSelected: onVegFilterTap,
-          fromAppBar: true,
-        ) : const SizedBox(),
-
-      ] : [const SizedBox()],
+      actions: _buildActions(context),
     );
   }
 

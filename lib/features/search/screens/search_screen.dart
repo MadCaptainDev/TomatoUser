@@ -20,6 +20,7 @@ import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/store/widgets/bottom_cart_widget.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
+import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
@@ -318,8 +319,17 @@ class SearchScreenState extends State<SearchScreen>
                                           _searchController.text.trim(), false),
                                     ),
                                   )),
-                                  const SizedBox(
-                                      width: Dimensions.paddingSizeSmall),
+                                  IconButton(
+                                    onPressed: () => Get.offAllNamed(
+                                        RouteHelper.getMainRoute('home')),
+                                    icon: Icon(
+                                      Icons.home_outlined,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge!
+                                          .color,
+                                    ),
+                                  ),
                                 ]))),
                 Expanded(
                     child: searchController.isSearchMode

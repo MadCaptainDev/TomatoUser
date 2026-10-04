@@ -24,6 +24,7 @@ class TrackDetailsViewWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     double distance = 0;
     bool takeAway = track.orderType == 'take_away';
+    final bool storeLocationVisible = track.store?.isLocationVisible ?? true;
     if(track.deliveryMan != null) {
       distance = Geolocator.distanceBetween(
         double.parse(track.deliveryAddress!.latitude!), double.parse(track.deliveryAddress!.longitude!),
@@ -64,7 +65,7 @@ class TrackDetailsViewWidget extends StatelessWidget {
 
           Expanded(
             flex: 5,
-            child: (takeAway && track.orderType != 'parcel') ? Text(track.store != null ? track.store!.address! : '', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
+            child: (takeAway && storeLocationVisible && track.orderType != 'parcel') ? Text(track.store != null ? track.store!.address! : '', style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall),
               maxLines: 2, overflow: TextOverflow.ellipsis,
             ) : (track.orderType == 'parcel' && status == 'picked_up') ? AddressDetailsWidget(addressDetails: track.receiverDetails)
                 : AddressDetailsWidget(addressDetails: track.deliveryAddress),
@@ -72,7 +73,7 @@ class TrackDetailsViewWidget extends StatelessWidget {
         ]),
         const SizedBox(height: Dimensions.paddingSizeSmall),
 
-        takeAway ? InkWell(
+        (takeAway && storeLocationVisible) ? InkWell(
           onTap: () async {
             String url ='https://www.google.com/maps/dir/?api=1&destination=${track.store != null ? track.store!.latitude : ''}'
                 ',${track.store != null ? track.store!.longitude : ''}&mode=d';

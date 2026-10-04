@@ -27,6 +27,8 @@ import 'package:sixam_mart/common/widgets/rating_bar.dart';
 import 'package:sixam_mart/features/checkout/screens/checkout_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 
 class ItemBottomSheet extends StatefulWidget {
   final Item? item;
@@ -232,29 +234,44 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                           Column(mainAxisAlignment: MainAxisAlignment.spaceBetween, crossAxisAlignment: CrossAxisAlignment.end, children: [
 
                             widget.isCampaign ? const SizedBox(height: 25) : GetBuilder<FavouriteController>(builder: (wishList) {
-                              return InkWell(
-                                onTap: () {
-                                  if(AuthHelper.isLoggedIn()) {
-                                    wishList.wishItemIdList.contains(widget.item!.id) ? wishList.removeFromFavouriteList(widget.item!.id, false, getXSnackBar: true)
-                                        : wishList.addToFavouriteList(widget.item, null, false, getXSnackBar: true);
-                                  }else {
-                                    showCustomSnackBar('you_are_not_logged_in'.tr, getXSnackBar: true);
-                                  }
-                                },
-                                child: Container(
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                                      color: Theme.of(context).primaryColor.withOpacity(0.05)
-                                  ),
-                                  padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
-                                  margin: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
-                                  child: Icon(
-                                    wishList.wishItemIdList.contains(widget.item!.id) ? Icons.favorite : Icons.favorite_border,
-                                    color: wishList.wishItemIdList.contains(widget.item!.id) ? Theme.of(context).primaryColor
-                                        : Theme.of(context).disabledColor,
+                              return Row(mainAxisSize: MainAxisSize.min, children: [
+                                InkWell(
+                                  onTap: () {
+                                    if(AuthHelper.isLoggedIn()) {
+                                      wishList.wishItemIdList.contains(widget.item!.id) ? wishList.removeFromFavouriteList(widget.item!.id, false, getXSnackBar: true)
+                                          : wishList.addToFavouriteList(widget.item, null, false, getXSnackBar: true);
+                                    }else {
+                                      showCustomSnackBar('you_are_not_logged_in'.tr, getXSnackBar: true);
+                                    }
+                                  },
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                                        color: Theme.of(context).primaryColor.withOpacity(0.05)
+                                    ),
+                                    padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+                                    margin: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
+                                    child: Icon(
+                                      wishList.wishItemIdList.contains(widget.item!.id) ? Icons.favorite : Icons.favorite_border,
+                                      color: wishList.wishItemIdList.contains(widget.item!.id) ? Theme.of(context).primaryColor
+                                          : Theme.of(context).disabledColor,
+                                    ),
                                   ),
                                 ),
-                              );
+                                const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                                InkWell(
+                                  onTap: () => Share.share('${AppConstants.webHostedUrl}/item-details?id=${widget.item!.id}'),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+                                      color: Theme.of(context).primaryColor.withOpacity(0.05),
+                                    ),
+                                    padding: const EdgeInsets.all(Dimensions.paddingSizeSmall),
+                                    margin: const EdgeInsets.only(top: Dimensions.paddingSizeSmall),
+                                    child: Icon(Icons.share_outlined, color: Theme.of(context).disabledColor),
+                                  ),
+                                ),
+                              ]);
                             }),
                             const SizedBox(height: Dimensions.paddingSizeDefault),
 
@@ -526,9 +543,11 @@ class _ItemBottomSheetState extends State<ItemBottomSheet> {
                                         storeId: null, fromCart: false, cartList: [cartModel],
                                       ));
                                     }else {
+                                      Get.find<CartController>().applyStoreCartTypeToItem(widget.item!);
                                       if (Get.find<CartController>().existAnotherStoreItem(
                                           cartModel.item!.storeId, Get.find<SplashController>().module != null
                                           ? Get.find<SplashController>().module!.id : Get.find<SplashController>().cacheModule!.id,
+                                          item: widget.item,
                                       )) {
                                         Get.dialog(ConfirmationDialog(
                                           icon: Images.warning,

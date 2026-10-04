@@ -157,7 +157,7 @@ class _StoreScreenState extends State<StoreScreen> {
                       SliverToBoxAdapter(
                         child: Column(
                           children: [
-                            CustomAppBar(title: 'Store Detail'),
+                            CustomAppBar(title: 'Store Detail', showHome: true),
                             SizedBox(
                               height: 20,
                             ),
@@ -302,20 +302,22 @@ class _StoreScreenState extends State<StoreScreen> {
                                                         .paddingSizeSmall),
                                               ],
                                             ),
-                                            const SizedBox(
-                                                height: Dimensions
-                                                    .paddingSizeExtraSmall),
-                                            Text(
-                                              store.address ?? '',
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: robotoRegular.copyWith(
-                                                fontSize:
-                                                    Dimensions.fontSizeSmall,
-                                                color: Theme.of(context)
-                                                    .disabledColor,
+                                            if (store.isLocationVisible) ...[
+                                              const SizedBox(
+                                                  height: Dimensions
+                                                      .paddingSizeExtraSmall),
+                                              Text(
+                                                store.address ?? '',
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: robotoRegular.copyWith(
+                                                  fontSize:
+                                                      Dimensions.fontSizeSmall,
+                                                  color: Theme.of(context)
+                                                      .disabledColor,
+                                                ),
                                               ),
-                                            ),
+                                            ],
                                             const SizedBox(
                                                 height: Dimensions
                                                     .paddingSizeExtraSmall),
@@ -399,7 +401,7 @@ class _StoreScreenState extends State<StoreScreen> {
                                       // Share Icon
                                       AppConstants.webHostedUrl.isNotEmpty
                                           ? InkWell(
-                                              onTap: () => getReferalCoupon(),
+                                              onTap: () => Get.find<StoreController>().shareStore(),
                                               child: Container(
                                                 decoration: BoxDecoration(
                                                   color: Theme.of(context)

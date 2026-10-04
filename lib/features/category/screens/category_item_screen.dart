@@ -10,8 +10,12 @@ import 'package:sixam_mart/features/category/controllers/category_controller.dar
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
+import 'package:sixam_mart/common/widgets/custom_image.dart';
+import 'package:sixam_mart/features/category/domain/models/category_model.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
+import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/dimensions.dart';
 import 'package:sixam_mart/util/styles.dart';
 
@@ -119,6 +123,12 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
         }
       }
 
+      final module = ModuleHelper.getModule() ?? ModuleHelper.getCacheModule();
+      final bool isVerticalLayout = !ResponsiveHelper.isDesktop(context) &&
+          module?.categoryLayout == 'vertical';
+      final bool useTwoColumnItems = !ResponsiveHelper.isDesktop(context) &&
+          (isVerticalLayout || module?.categoryLayout != 'vertical');
+
       return PopScope(
         canPop: true,
         onPopInvoked: (didPop) async {
@@ -175,6 +185,13 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                   backgroundColor: Theme.of(context).cardColor,
                   elevation: 0,
                   actions: [
+                    IconButton(
+                      onPressed: () => Get.offAllNamed(RouteHelper.getMainRoute('home')),
+                      icon: Icon(
+                        Icons.home_outlined,
+                        color: Theme.of(context).textTheme.bodyLarge!.color,
+                      ),
+                    ),
                     IconButton(
                       onPressed: () => catController.toggleSearch(),
                       icon: Icon(
@@ -246,7 +263,8 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
             width: Dimensions.webMaxWidth,
             child: Column(children: [
               (catController.subCategoryList != null &&
-                      !catController.isSearching)
+                      !catController.isSearching &&
+                      !isVerticalLayout)
                   ? Center(
                       child: Container(
                       height: 40,
@@ -389,15 +407,58 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    SingleChildScrollView(
-                      controller: scrollController,
-                      child: ItemsView(
-                        isStore: false,
-                        items: item,
-                        stores: null,
-                        noDataText: 'no_category_item_found'.tr,
-                      ),
-                    ),
+                    isVerticalLayout &&
+                            catController.subCategoryList != null &&
+                            !catController.isSearching
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(
+                                width: 88,
+                                color: Theme.of(context).cardColor,
+                                child: ListView.builder(
+                                  itemCount:
+                                      catController.subCategoryList!.length,
+                                  padding: const EdgeInsets.symmetric(
+                                      vertical:
+                                          Dimensions.paddingSizeExtraSmall),
+                                  itemBuilder: (context, index) {
+                                    return _VerticalSubCategoryTile(
+                                      category: catController
+                                          .subCategoryList![index],
+                                      selected: index ==
+                                          catController.subCategoryIndex,
+                                      onTap: () =>
+                                          catController.setSubCategoryIndex(
+                                              index, widget.categoryID),
+                                    );
+                                  },
+                                ),
+                              ),
+                              Expanded(
+                                child: SingleChildScrollView(
+                                  controller: scrollController,
+                                  child: ItemsView(
+                                    isStore: false,
+                                    items: item,
+                                    stores: null,
+                                    noDataText: 'no_category_item_found'.tr,
+                                    useTwoColumnItemGrid: useTwoColumnItems,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : SingleChildScrollView(
+                            controller: scrollController,
+                            child: ItemsView(
+                              isStore: false,
+                              items: item,
+                              stores: null,
+                              noDataText: 'no_category_item_found'.tr,
+                              useTwoColumnItemGrid: useTwoColumnItems,
+                            ),
+                          ),
                     SingleChildScrollView(
                       controller: storeScrollController,
                       child: ItemsView(
@@ -431,5 +492,70 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
         ),
       );
     });
+  }
+}
+
+class _VerticalSubCategoryTile extends StatelessWidget {
+  final CategoryModel category;
+  final bool selected;
+  final VoidCallback onTap;
+  const _VerticalSubCategoryTile({
+    required this.category,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(
+          horizontal: Dimensions.paddingSizeExtraSmall,
+          vertical: Dimensions.paddingSizeExtraSmall,
+        ),
+        padding: const EdgeInsets.symmetric(
+          vertical: Dimensions.paddingSizeSmall,
+          horizontal: Dimensions.paddingSizeExtraSmall,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? Theme.of(context).primaryColor.withOpacity(0.12)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+          border: selected
+              ? Border.all(
+                  color: Theme.of(context).primaryColor.withOpacity(0.35))
+              : null,
+        ),
+        child: Column(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+              child: CustomImage(
+                image: category.imageFullUrl ?? '',
+                height: 44,
+                width: 44,
+                fit: BoxFit.cover,
+                placeholder: Images.placeholder,
+              ),
+            ),
+            const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+            Text(
+              category.name ?? '',
+              style: (selected ? robotoMedium : robotoRegular).copyWith(
+                fontSize: Dimensions.fontSizeExtraSmall,
+                color: selected
+                    ? Theme.of(context).primaryColor
+                    : Theme.of(context).textTheme.bodyMedium!.color,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

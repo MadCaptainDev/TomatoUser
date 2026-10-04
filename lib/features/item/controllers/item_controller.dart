@@ -477,9 +477,10 @@ class ItemController extends GetxController implements GetxService {
       );
       if(Get.find<SplashController>().configModel!.moduleConfig!.module!.stock! && item.stock! <= 0){
         showCustomSnackBar('out_of_stock'.tr);
-      }
-      else if (Get.find<CartController>().existAnotherStoreItem(cartModel.item!.storeId, ModuleHelper.getModule() != null
-          ? ModuleHelper.getModule()?.id : ModuleHelper.getCacheModule()?.id)) {
+      } else {
+        Get.find<CartController>().applyStoreCartTypeToItem(item);
+        if (Get.find<CartController>().existAnotherStoreItem(cartModel.item!.storeId, ModuleHelper.getModule() != null
+          ? ModuleHelper.getModule()?.id : ModuleHelper.getCacheModule()?.id, item: item)) {
         Get.dialog(ConfirmationDialog(
           icon: Images.warning,
           title: 'are_you_sure_to_reset'.tr,
@@ -495,9 +496,10 @@ class ItemController extends GetxController implements GetxService {
             });
           },
         ), barrierDismissible: false);
-      } else {
-        Get.find<CartController>().addToCartOnline(onlineCart);
-        showCartSnackBar();
+        } else {
+          Get.find<CartController>().addToCartOnline(onlineCart);
+          showCartSnackBar();
+        }
       }
     } else if(Get.find<SplashController>().configModel!.moduleConfig!.module!.showRestaurantText! || item.moduleType == AppConstants.food){
       ResponsiveHelper.isMobile(context) ? Get.bottomSheet(

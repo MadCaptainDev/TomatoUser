@@ -82,6 +82,10 @@ class Store {
   String? storeBusinessModel;
   double? distance;
   String? storeOpeningTime;
+  String? cartType;
+  bool? showLocation;
+
+  bool get isLocationVisible => showLocation != false;
 
   Store({
     this.id,
@@ -135,7 +139,20 @@ class Store {
     this.storeBusinessModel,
     this.distance,
     this.storeOpeningTime,
+    this.cartType,
+    this.showLocation,
   });
+
+  static bool? _parseBoolField(dynamic value) {
+    if (value == null) return null;
+    if (value is bool) return value;
+    if (value is int) return value == 1;
+    if (value is String) {
+      if (value == '1' || value.toLowerCase() == 'true') return true;
+      if (value == '0' || value.toLowerCase() == 'false') return false;
+    }
+    return null;
+  }
 
   Store.fromJson(Map<String, dynamic> json) {
     id = json['id'];
@@ -205,6 +222,8 @@ class Store {
     storeBusinessModel = json['store_business_model'];
     distance = json['distance']?.toDouble();
     storeOpeningTime = json['current_opening_time'];
+    cartType = json['cart_type']?.toString() ?? 'single';
+    showLocation = _parseBoolField(json['show_location']);
   }
 
   Map<String, dynamic> toJson() {
@@ -267,6 +286,8 @@ class Store {
     }
     data['store_business_model'] = storeBusinessModel;
     data['distance'] = distance;
+    data['cart_type'] = cartType;
+    data['show_location'] = showLocation;
     return data;
   }
 }

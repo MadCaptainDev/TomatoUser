@@ -3,6 +3,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:sixam_mart/api/api_client.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
 import 'package:sixam_mart/features/payment/domain/models/offline_method_model.dart';
+import 'package:sixam_mart/features/checkout/domain/models/place_multi_order_body_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/place_order_body_model.dart';
 import 'package:sixam_mart/features/checkout/domain/models/timeslote_model.dart';
 import 'package:sixam_mart/features/checkout/domain/repositories/checkout_repository_interface.dart';
@@ -112,6 +113,11 @@ class CheckoutService implements CheckoutServiceInterface {
   @override
   Future<Response> placeOrder(PlaceOrderBodyModel orderBody, List<MultipartBody> orderAttachment) async {
     return await checkoutRepositoryInterface.placeOrder(orderBody, orderAttachment);
+  }
+
+  @override
+  Future<Response> placeMultiOrder(PlaceMultiOrderBodyModel orderBody, List<MultipartBody> orderAttachment) async {
+    return await checkoutRepositoryInterface.placeMultiOrder(orderBody, orderAttachment);
   }
 
   @override

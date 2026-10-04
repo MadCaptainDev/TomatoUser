@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'package:sixam_mart/helper/platform/file_image_view.dart';
 
 import 'package:card_swiper/card_swiper.dart';
 import 'package:country_code_picker/country_code_picker.dart';
@@ -390,15 +390,8 @@ class _StoreRegistrationScreenState extends State<StoreRegistrationScreen>
                                                                             Dimensions.radiusSmall),
                                                                     child: storeRegController.pickedLogo !=
                                                                             null
-                                                                        ? GetPlatform.isWeb
-                                                                            ? Image.network(
+                                                                        ? fileImage(
                                                                                 storeRegController.pickedLogo!.path,
-                                                                                width: 150,
-                                                                                height: 120,
-                                                                                fit: BoxFit.cover,
-                                                                              )
-                                                                            : Image.file(
-                                                                                File(storeRegController.pickedLogo!.path),
                                                                                 width: 150,
                                                                                 height: 120,
                                                                                 fit: BoxFit.cover,
@@ -530,25 +523,10 @@ class _StoreRegistrationScreenState extends State<StoreRegistrationScreen>
                                                             child: storeRegController
                                                                         .pickedCover !=
                                                                     null
-                                                                ? GetPlatform
-                                                                        .isWeb
-                                                                    ? Image
-                                                                        .network(
+                                                                ? fileImage(
                                                                         storeRegController
                                                                             .pickedCover!
                                                                             .path,
-                                                                        width: context
-                                                                            .width,
-                                                                        height:
-                                                                            120,
-                                                                        fit: BoxFit
-                                                                            .cover,
-                                                                      )
-                                                                    : Image
-                                                                        .file(
-                                                                        File(storeRegController
-                                                                            .pickedCover!
-                                                                            .path),
                                                                         width: context
                                                                             .width,
                                                                         height:
@@ -1474,17 +1452,9 @@ class _StoreRegistrationScreenState extends State<StoreRegistrationScreen>
                                   borderRadius: BorderRadius.circular(
                                       Dimensions.radiusSmall),
                                   child: storeRegController.pickedLogo != null
-                                      ? GetPlatform.isWeb
-                                          ? Image.network(
+                                      ? fileImage(
                                               storeRegController
                                                   .pickedLogo!.path,
-                                              width: 150,
-                                              height: 120,
-                                              fit: BoxFit.cover,
-                                            )
-                                          : Image.file(
-                                              File(storeRegController
-                                                  .pickedLogo!.path),
                                               width: 150,
                                               height: 120,
                                               fit: BoxFit.cover,
@@ -1596,16 +1566,8 @@ class _StoreRegistrationScreenState extends State<StoreRegistrationScreen>
                               borderRadius:
                                   BorderRadius.circular(Dimensions.radiusSmall),
                               child: storeRegController.pickedCover != null
-                                  ? GetPlatform.isWeb
-                                      ? Image.network(
+                                  ? fileImage(
                                           storeRegController.pickedCover!.path,
-                                          width: context.width,
-                                          height: 120,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Image.file(
-                                          File(storeRegController
-                                              .pickedCover!.path),
                                           width: context.width,
                                           height: 120,
                                           fit: BoxFit.cover,

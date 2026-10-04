@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' if (dart.library.html) 'package:sixam_mart/helper/platform/io_stub.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sixam_mart/common/widgets/demo_reset_dialog_widget.dart';
@@ -320,7 +320,10 @@ class NotificationHelper {
 
   static Future<String> _downloadAndSaveFile(
       String url, String fileName) async {
-    final Directory directory = await getApplicationDocumentsDirectory();
+    if (kIsWeb) {
+      return url;
+    }
+    final directory = await getApplicationDocumentsDirectory();
     final String filePath = '${directory.path}/$fileName';
     final http.Response response = await http.get(Uri.parse(url));
     final File file = File(filePath);

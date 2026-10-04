@@ -40,6 +40,7 @@ class OrderSuccessfulScreen extends StatefulWidget {
 class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
   bool? _isCashOnDeliveryActive = false;
   String? orderId;
+  List<String> orderIds = [];
 
   @override
   void initState() {
@@ -52,6 +53,11 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
         String id = parts[0].trim();
         orderId = id;
       }
+      orderIds = orderId!.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+      if (orderIds.isEmpty) {
+        orderIds = [orderId!];
+      }
+      orderId = orderIds.first;
     }
 
     Get.find<OrderController>().trackOrder(orderId.toString(), null, false,
@@ -192,7 +198,28 @@ class _OrderSuccessfulScreenState extends State<OrderSuccessfulScreen> {
                                               ]),
                                         )
                                       : const SizedBox(),
-                                  AuthHelper.isGuestLoggedIn()
+                                  orderIds.length > 1
+                                      ? Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: Dimensions.paddingSizeLarge),
+                                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                            Text('order_id'.tr, style: robotoMedium.copyWith(fontSize: Dimensions.fontSizeLarge)),
+                                            const SizedBox(height: Dimensions.paddingSizeSmall),
+                                            ...orderIds.map((id) => Padding(
+                                              padding: const EdgeInsets.only(bottom: Dimensions.paddingSizeExtraSmall),
+                                              child: InkWell(
+                                                onTap: () => Get.toNamed(RouteHelper.getOrderTrackingRoute(int.tryParse(id), widget.contactPersonNumber)),
+                                                child: Row(children: [
+                                                  Expanded(child: SelectableText(
+                                                    id,
+                                                    style: robotoMedium.copyWith(color: Theme.of(context).primaryColor),
+                                                  )),
+                                                  Icon(Icons.local_shipping_outlined, size: 18, color: Theme.of(context).primaryColor),
+                                                ]),
+                                              ),
+                                            )),
+                                          ]),
+                                        )
+                                      : AuthHelper.isGuestLoggedIn()
                                       ? SelectableText(
                                           '${'order_id'.tr}: $orderId',
                                           style: robotoMedium.copyWith(

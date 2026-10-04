@@ -124,7 +124,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               key: _globalKey,
               backgroundColor: Theme.of(context).cardColor,
               endDrawer: const MenuDrawer(),endDrawerEnableOpenDragGesture: false,
-              appBar: ResponsiveHelper.isDesktop(context)? const CustomAppBar(title: '')  :  DetailsAppBarWidget(key: _key),
+              appBar: ResponsiveHelper.isDesktop(context)? const CustomAppBar(title: '')  :  DetailsAppBarWidget(key: _key, itemId: widget.item?.id),
 
               body: SafeArea(child: (itemController.item != null) ? ResponsiveHelper.isDesktop(context) ? DetailsWebViewWidget(
                 cartModel: cartModel, stock: stock, priceWithAddOns: priceWithAddons, cart: cart,
@@ -332,7 +332,8 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
                                 storeId: null, fromCart: false, cartList: [cartModel],
                               ));
                             }else {
-                              if (cartController.existAnotherStoreItem(cartModel!.item!.storeId, Get.find<SplashController>().module == null ? Get.find<SplashController>().cacheModule!.id : Get.find<SplashController>().module!.id)) {
+                              cartController.applyStoreCartTypeToItem(widget.item!);
+                              if (cartController.existAnotherStoreItem(cartModel!.item!.storeId, Get.find<SplashController>().module == null ? Get.find<SplashController>().cacheModule!.id : Get.find<SplashController>().module!.id, item: widget.item)) {
                                 Get.dialog(ConfirmationDialog(
                                   icon: Images.warning,
                                   title: 'are_you_sure_to_reset'.tr,

@@ -24,7 +24,7 @@ import 'package:sixam_mart/features/checkout/widgets/payment_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/time_slot_section.dart';
 import 'package:sixam_mart/features/checkout/widgets/web_delivery_instruction_view.dart';
 import 'package:sixam_mart/features/store/widgets/camera_button_sheet_widget.dart';
-import 'dart:io';
+import 'package:sixam_mart/helper/platform/file_image_view.dart';
 
 class TopSection extends StatelessWidget {
   final CheckoutController checkoutController;
@@ -176,10 +176,8 @@ class TopSection extends StatelessWidget {
                         child: Stack(children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
-                            child: GetPlatform.isWeb ? Image.network(
+                            child: fileImage(
                               file.path, width: 98, height: 98, fit: BoxFit.cover,
-                            ) : Image.file(
-                              File(file.path), width: 98, height: 98, fit: BoxFit.cover,
                             ),
                           ),
                           Positioned(

@@ -172,26 +172,27 @@ class StoreDescriptionViewWidget extends StatelessWidget {
          ),
          const Expanded(child: SizedBox()),
 
-         const VerticalDivider(color: Colors.white, thickness: 1),
-         const Expanded(child: SizedBox()),
+         if (store!.isLocationVisible) ...[
+           const VerticalDivider(color: Colors.white, thickness: 1),
+           const Expanded(child: SizedBox()),
 
-         InkWell(
-           onTap: () => Get.toNamed(RouteHelper.getMapRoute(
-               AddressModel(id: store!.id, address: store!.address, latitude: store!.latitude,
-                 longitude: store!.longitude, contactPersonNumber: '', contactPersonName: '', addressType: '',
-               ), 'store', Get.find<SplashController>().getModuleConfig(Get.find<SplashController>().module!.moduleType!).newVariation!,
-             storeName: store!.name,
-           )),
-           child: Column(children: [
-             // Icon(Icons.location_on, color: Theme.of(context).primaryColor, size: 20),
-             Image.asset(Images.storeLocationIcon, height: 20, width: 20),
-             const SizedBox(height: Dimensions.paddingSizeExtraSmall),
-             Text('location'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
-           ]),
-         ),
-         const Expanded(child: SizedBox()),
-         const VerticalDivider(color: Colors.white, thickness: 1),
-         const Expanded(child: SizedBox()),
+           InkWell(
+             onTap: () => Get.toNamed(RouteHelper.getMapRoute(
+                 AddressModel(id: store!.id, address: store!.address, latitude: store!.latitude,
+                   longitude: store!.longitude, contactPersonNumber: '', contactPersonName: '', addressType: '',
+                 ), 'store', Get.find<SplashController>().getModuleConfig(Get.find<SplashController>().module!.moduleType!).newVariation!,
+               storeName: store!.name,
+             )),
+             child: Column(children: [
+               Image.asset(Images.storeLocationIcon, height: 20, width: 20),
+               const SizedBox(height: Dimensions.paddingSizeExtraSmall),
+               Text('location'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
+             ]),
+           ),
+           const Expanded(child: SizedBox()),
+           const VerticalDivider(color: Colors.white, thickness: 1),
+           const Expanded(child: SizedBox()),
+         ],
 
          Column(children: [
            Image.asset(Images.storeDeliveryTimeIcon, height: 20, width: 20),
@@ -234,21 +235,22 @@ class StoreDescriptionViewWidget extends StatelessWidget {
        ),
        const Expanded(child: SizedBox()),
 
-
-       InkWell(
-         onTap: () => Get.toNamed(RouteHelper.getMapRoute(
-           AddressModel(id: store!.id, address: store!.address, latitude: store!.latitude,
-             longitude: store!.longitude, contactPersonNumber: '', contactPersonName: '', addressType: '',
-           ), 'store', Get.find<SplashController>().getModuleConfig(Get.find<SplashController>().module!.moduleType!).newVariation!,
-           storeName: store!.name,
-         )),
-         child: Column(children: [
-           Icon(Icons.location_on, color: Theme.of(context).primaryColor, size: 20),
-           const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-           Text('location'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
-         ]),
-       ),
-       const Expanded(child: SizedBox()),
+       if (store!.isLocationVisible) ...[
+         InkWell(
+           onTap: () => Get.toNamed(RouteHelper.getMapRoute(
+             AddressModel(id: store!.id, address: store!.address, latitude: store!.latitude,
+               longitude: store!.longitude, contactPersonNumber: '', contactPersonName: '', addressType: '',
+             ), 'store', Get.find<SplashController>().getModuleConfig(Get.find<SplashController>().module!.moduleType!).newVariation!,
+             storeName: store!.name,
+           )),
+           child: Column(children: [
+             Icon(Icons.location_on, color: Theme.of(context).primaryColor, size: 20),
+             const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+             Text('location'.tr, style: robotoRegular.copyWith(fontSize: Dimensions.fontSizeSmall, color: textColor)),
+           ]),
+         ),
+         const Expanded(child: SizedBox()),
+       ],
 
        Column(children: [
          Row(children: [

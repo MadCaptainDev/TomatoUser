@@ -101,17 +101,19 @@ class StoreCardWidget extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(height: Dimensions.paddingSizeExtraSmall),
-                        SizedBox(
-                          width: context.width * 0.7,
-                          child: Text(
-                            store!.address ?? '',
-                            style: robotoMedium.copyWith(
-                                fontSize: Dimensions.fontSizeExtraSmall),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        if (store!.isLocationVisible) ...[
+                          SizedBox(height: Dimensions.paddingSizeExtraSmall),
+                          SizedBox(
+                            width: context.width * 0.7,
+                            child: Text(
+                              store!.address ?? '',
+                              style: robotoMedium.copyWith(
+                                  fontSize: Dimensions.fontSizeExtraSmall),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
+                        ],
                         SizedBox(height: Dimensions.paddingSizeSmall),
                         Row(
                           children: [

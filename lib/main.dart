@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:firebase_core/firebase_core.dart';
@@ -18,7 +17,9 @@ import 'package:sixam_mart/features/notification/domain/models/notification_body
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/helper/address_helper.dart';
 import 'package:sixam_mart/helper/auth_helper.dart';
+import 'package:sixam_mart/helper/deep_link_helper.dart';
 import 'package:sixam_mart/helper/notification_helper.dart';
+import 'package:sixam_mart/helper/platform/http_overrides.dart';
 import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/theme/dark_theme.dart';
@@ -34,7 +35,7 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 Future<void> main() async {
   if (ResponsiveHelper.isMobilePhone()) {
-    HttpOverrides.global = MyHttpOverrides();
+    setupHttpOverrides();
   }
   setPathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,7 +115,14 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
+    DeepLinkHelper.init();
     _route();
+  }
+
+  @override
+  void dispose() {
+    DeepLinkHelper.dispose();
+    super.dispose();
   }
 
   void _route() async {
@@ -213,11 +221,3 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class MyHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context)
-      ..badCertificateCallback =
-          (X509Certificate cert, String host, int port) => true;
-  }
-}

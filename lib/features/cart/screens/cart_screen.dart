@@ -58,15 +58,42 @@ class _CartScreenState extends State<CartScreen> {
 
   }
 
+  int? _primaryStoreIdFromCart(List<CartModel> cartList) {
+    if (cartList.isEmpty) return null;
+    return cartList.first.item?.storeId;
+  }
+
+  List<Map<String, dynamic>> _groupCartByStore(List<CartModel> cartList) {
+    final Map<int, Map<String, dynamic>> grouped = {};
+    for (int index = 0; index < cartList.length; index++) {
+      final CartModel cart = cartList[index];
+      final int storeId = cart.item!.storeId!;
+      grouped.putIfAbsent(storeId, () => {
+        'storeId': storeId,
+        'storeName': cart.item!.storeName ?? 'Store',
+        'entries': <Map<String, dynamic>>[],
+      });
+      (grouped[storeId]!['entries'] as List<Map<String, dynamic>>).add({'cart': cart, 'index': index});
+    }
+    return grouped.values.toList();
+  }
+
+  double _storeSubtotal(List<Map<String, dynamic>> entries) {
+    double subtotal = 0;
+    for (final Map<String, dynamic> entry in entries) {
+      final CartModel cart = entry['cart'];
+      subtotal += (cart.discountedPrice ?? cart.price ?? 0) * (cart.quantity ?? 0);
+    }
+    return subtotal;
+  }
+
   Future<void> initCall() async {
     _initialBottomSheetShowHide();
     if(Get.find<CartController>().cartList.isEmpty) {
       await Get.find<CartController>().getCartDataOnline();
     }
     if(Get.find<CartController>().cartList.isNotEmpty){
-      if (kDebugMode) {
-        print('----cart item : ${Get.find<CartController>().cartList[0].toJson()}');
-      }
+      final int? primaryStoreId = _primaryStoreIdFromCart(Get.find<CartController>().cartList);
 
       if(Get.find<CartController>().addCutlery){
         Get.find<CartController>().updateCutlery(willUpdate: false);
@@ -75,8 +102,10 @@ class _CartScreenState extends State<CartScreen> {
         Get.find<CartController>().toggleExtraPackage(willUpdate: false);
       }
       Get.find<CartController>().setAvailableIndex(-1, willUpdate: false);
-      Get.find<StoreController>().getCartStoreSuggestedItemList(Get.find<CartController>().cartList[0].item!.storeId);
-      Get.find<StoreController>().getStoreDetails(Store(id: Get.find<CartController>().cartList[0].item!.storeId, name: null), false, fromCart: true);
+      if (primaryStoreId != null) {
+        Get.find<StoreController>().getCartStoreSuggestedItemList(primaryStoreId);
+        Get.find<StoreController>().getStoreDetails(Store(id: primaryStoreId, name: null), false, fromCart: true);
+      }
       Get.find<CartController>().calculationCart();
       showReferAndEarnSnackBar();
     }
@@ -171,32 +200,50 @@ class _CartScreenState extends State<CartScreen> {
                                     WebConstrainedBox(
                                       dataLength: cartController.cartList.length, minLength: 5, minHeight: 0.6,
                                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                        ListView.builder(
-                                          physics: const NeverScrollableScrollPhysics(),
-                                          shrinkWrap: true,
-                                          itemCount: cartController.cartList.length,
-                                          padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
-                                          itemBuilder: (context, index) {
-                                            return CartItemWidget(cart: cartController.cartList[index], cartIndex: index, addOns: cartController.addOnsList[index], isAvailable: cartController.availableList[index]);
-                                          },
-                                        ),
-
-                                        const Divider(thickness: 0.5, height: 5),
-
-                                        Padding(
-                                          padding: const EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall),
-                                          child: TextButton.icon(
-                                            onPressed: (){
-                                              cartController.forcefullySetModule(cartController.cartList[0].item!.moduleId!);
-                                              Get.toNamed(
-                                                RouteHelper.getStoreRoute(id: cartController.cartList[0].item!.storeId, page: 'item'),
-                                                arguments: StoreScreen(store: Store(id: cartController.cartList[0].item!.storeId), fromModule: false),
-                                              );
-                                            },
-                                            icon: Icon(Icons.add_circle_outline_sharp, color: Theme.of(context).primaryColor),
-                                            label: Text('add_more_items'.tr, style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)),
-                                          ),
-                                        ),
+                                        ..._groupCartByStore(cartController.cartList).map((group) {
+                                          final List<Map<String, dynamic>> entries = group['entries'];
+                                          return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                            Padding(
+                                              padding: const EdgeInsets.fromLTRB(Dimensions.paddingSizeDefault, Dimensions.paddingSizeSmall, Dimensions.paddingSizeDefault, 0),
+                                              child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                                                Expanded(child: Text(group['storeName'], style: robotoMedium)),
+                                                Text(
+                                                  PriceConverter.convertPrice(_storeSubtotal(entries)),
+                                                  style: robotoMedium.copyWith(color: Theme.of(context).primaryColor),
+                                                  textDirection: TextDirection.ltr,
+                                                ),
+                                              ]),
+                                            ),
+                                            ListView.builder(
+                                              physics: const NeverScrollableScrollPhysics(),
+                                              shrinkWrap: true,
+                                              itemCount: entries.length,
+                                              padding: const EdgeInsets.all(Dimensions.paddingSizeDefault),
+                                              itemBuilder: (context, entryIndex) {
+                                                final int cartIndex = entries[entryIndex]['index'];
+                                                final CartModel cart = entries[entryIndex]['cart'];
+                                                return CartItemWidget(cart: cart, cartIndex: cartIndex, addOns: cartController.addOnsList[cartIndex], isAvailable: cartController.availableList[cartIndex]);
+                                              },
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(left: Dimensions.paddingSizeExtraSmall, bottom: Dimensions.paddingSizeSmall),
+                                              child: TextButton.icon(
+                                                onPressed: (){
+                                                  final int storeId = group['storeId'];
+                                                  final int moduleId = entries.first['cart'].item!.moduleId!;
+                                                  cartController.forcefullySetModule(moduleId);
+                                                  Get.toNamed(
+                                                    RouteHelper.getStoreRoute(id: storeId, page: 'item'),
+                                                    arguments: StoreScreen(store: Store(id: storeId), fromModule: false),
+                                                  );
+                                                },
+                                                icon: Icon(Icons.add_circle_outline_sharp, color: Theme.of(context).primaryColor),
+                                                label: Text('add_more_items'.tr, style: robotoMedium.copyWith(color: Theme.of(context).primaryColor, fontSize: Dimensions.fontSizeDefault)),
+                                              ),
+                                            ),
+                                            const Divider(thickness: 0.5, height: 5),
+                                          ]);
+                                        }),
 
                                         ExtraPackagingWidget(cartController: cartController),
 

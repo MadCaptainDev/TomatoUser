@@ -164,7 +164,7 @@ class ItemWidget extends StatelessWidget {
                       ]),
                       const SizedBox(height: 3),
 
-                      (isStore ? store!.address != null : item!.storeName != null) ? Text(
+                      (isStore ? (store!.isLocationVisible && store!.address != null) : item!.storeName != null) ? Text(
                         isStore ? store!.address ?? '' : item!.storeName ?? '',
                         style: robotoRegular.copyWith(
                           fontSize: Dimensions.fontSizeExtraSmall,
@@ -186,7 +186,7 @@ class ItemWidget extends StatelessWidget {
                           ),
                         ),
                       ) : const SizedBox(),
-                      SizedBox(height: ((desktop || isStore) && (isStore ? store!.address != null : item!.storeName != null)) ? 3 : 3),
+                      SizedBox(height: ((desktop || isStore) && (isStore ? (store!.isLocationVisible && store!.address != null) : item!.storeName != null)) ? 3 : 3),
 
                       !isStore && (item!.ratingCount! > 0) ? Row(children: [
 

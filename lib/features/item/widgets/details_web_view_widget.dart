@@ -274,7 +274,7 @@ class DetailsWebViewWidget extends StatelessWidget {
                                     Get.toNamed(RouteHelper.getCheckoutRoute('campaign'), arguments: CheckoutScreen(
                                       storeId: null, fromCart: false, cartList: [cartModel],
                                     ));
-                                  }else if (Get.find<CartController>().existAnotherStoreItem(cartModel!.item!.storeId, Get.find<SplashController>().module!.id)) {
+                                  }else if (Get.find<CartController>().existAnotherStoreItem(cartModel!.item!.storeId, Get.find<SplashController>().module!.id, item: itemController.item)) {
                                     Get.dialog(ConfirmationDialog(
                                       icon: Images.warning,
                                       title: 'are_you_sure_to_reset'.tr,

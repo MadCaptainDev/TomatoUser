@@ -1,4 +1,6 @@
+import 'package:sixam_mart/common/widgets/card_design/item_card.dart';
 import 'package:sixam_mart/common/widgets/card_design/store_card_with_distance.dart';
+import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/features/splash/controllers/splash_controller.dart';
 import 'package:sixam_mart/features/item/domain/models/item_model.dart';
 import 'package:sixam_mart/features/store/domain/models/store_model.dart';
@@ -23,6 +25,7 @@ class ItemsView extends StatefulWidget {
   final bool inStorePage;
   final bool isFeatured;
   final bool? isFoodOrGrocery;
+  final bool useTwoColumnItemGrid;
   const ItemsView(
       {super.key,
       required this.stores,
@@ -35,7 +38,8 @@ class ItemsView extends StatefulWidget {
       this.isCampaign = false,
       this.inStorePage = false,
       this.isFeatured = false,
-      this.isFoodOrGrocery = true});
+      this.isFoodOrGrocery = true,
+      this.useTwoColumnItemGrid = false});
 
   @override
   State<ItemsView> createState() => _ItemsViewState();
@@ -44,6 +48,16 @@ class ItemsView extends StatefulWidget {
 class _ItemsViewState extends State<ItemsView> {
   @override
   Widget build(BuildContext context) {
+    final bool twoColumnItemGrid = widget.useTwoColumnItemGrid ||
+        (widget.inStorePage &&
+            !widget.isStore &&
+            ResponsiveHelper.isMobile(context));
+    final bool isFoodModule = Get.find<SplashController>().module != null &&
+        Get.find<SplashController>().module!.moduleType.toString() == 'food';
+    final bool isShopModule = Get.find<SplashController>().module != null &&
+        Get.find<SplashController>().module!.moduleType.toString() ==
+            AppConstants.ecommerce;
+
     bool isNull = true;
     int length = 0;
     if (widget.isStore) {
@@ -83,10 +97,14 @@ class _ItemsViewState extends State<ItemsView> {
                             : ResponsiveHelper.isMobile(context)
                                 ? widget.stores != null && widget.isStore
                                     ? 225
-                                    : 122
+                                    : twoColumnItemGrid
+                                        ? 285
+                                        : 122
                                 : 122,
                     crossAxisCount: ResponsiveHelper.isMobile(context)
-                        ? 1
+                        ? twoColumnItemGrid
+                            ? 2
+                            : 1
                         : ResponsiveHelper.isDesktop(context) &&
                                 widget.stores != null
                             ? 3
@@ -105,17 +123,29 @@ class _ItemsViewState extends State<ItemsView> {
                             : StoreCardWithDistance(
                                 store: widget.stores![index]!,
                                 fromAllStore: true)
-                        : ItemWidget(
-                            isStore: widget.isStore,
-                            item: widget.isStore ? null : widget.items![index],
-                            isFeatured: widget.isFeatured,
-                            store:
-                                widget.isStore ? widget.stores![index] : null,
-                            index: index,
-                            length: length,
-                            isCampaign: widget.isCampaign,
-                            inStore: widget.inStorePage,
-                          );
+                        : twoColumnItemGrid
+                            ? Center(
+                                child: ItemCard(
+                                  item: widget.items![index]!,
+                                  isFood: isFoodModule,
+                                  isShop: isShopModule,
+                                  isPopularItemCart: true,
+                                  index: index,
+                                ),
+                              )
+                            : ItemWidget(
+                                isStore: widget.isStore,
+                                item:
+                                    widget.isStore ? null : widget.items![index],
+                                isFeatured: widget.isFeatured,
+                                store: widget.isStore
+                                    ? widget.stores![index]
+                                    : null,
+                                index: index,
+                                length: length,
+                                isCampaign: widget.isCampaign,
+                                inStore: widget.inStorePage,
+                              );
                   },
                 )
               : NoDataScreen(

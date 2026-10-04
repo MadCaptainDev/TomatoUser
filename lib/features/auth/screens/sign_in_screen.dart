@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flutter/material.dart';
@@ -73,10 +72,8 @@ class SignInScreenState extends State<SignInScreen> {
           Navigator.pushNamed(context, RouteHelper.getInitialRoute());
         } else if (widget.exitFromApp) {
           if (_canExit) {
-            if (GetPlatform.isAndroid) {
+            if (GetPlatform.isAndroid || GetPlatform.isIOS) {
               SystemNavigator.pop();
-            } else if (GetPlatform.isIOS) {
-              exit(0);
             } else {
               Navigator.pushNamed(context, RouteHelper.getInitialRoute());
             }

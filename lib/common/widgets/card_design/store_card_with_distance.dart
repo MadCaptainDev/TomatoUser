@@ -121,16 +121,17 @@ class StoreCardWithDistance extends StatelessWidget {
                         Flexible(child: Text(store.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: robotoMedium)),
                         const SizedBox(height: Dimensions.paddingSizeExtraSmall),
 
-                        Row(children: [
-                          Icon(Icons.location_on_outlined, color: isPharmacy ? Colors.blue : Theme.of(context).primaryColor, size: 15),
-                          const SizedBox(width: Dimensions.paddingSizeExtraSmall),
-                          Expanded(child: Text(
-                            store.address ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,
-                            style: robotoRegular.copyWith(
-                              color: Theme.of(context).disabledColor, fontSize: Dimensions.fontSizeExtraSmall,
-                            ),
-                          )),
-                        ]),
+                        if (store.isLocationVisible)
+                          Row(children: [
+                            Icon(Icons.location_on_outlined, color: isPharmacy ? Colors.blue : Theme.of(context).primaryColor, size: 15),
+                            const SizedBox(width: Dimensions.paddingSizeExtraSmall),
+                            Expanded(child: Text(
+                              store.address ?? '', maxLines: 1, overflow: TextOverflow.ellipsis,
+                              style: robotoRegular.copyWith(
+                                color: Theme.of(context).disabledColor, fontSize: Dimensions.fontSizeExtraSmall,
+                              ),
+                            )),
+                          ]),
                       ]),
                     ),
                   ),

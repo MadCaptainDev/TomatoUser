@@ -32,7 +32,6 @@ import 'package:sixam_mart/helper/responsive_helper.dart';
 import 'package:sixam_mart/helper/route_helper.dart';
 import 'package:sixam_mart/util/app_constants.dart';
 import 'package:sixam_mart/util/dimensions.dart';
-import 'package:sixam_mart/util/images.dart';
 import 'package:sixam_mart/util/styles.dart';
 import 'package:sixam_mart/common/widgets/item_view.dart';
 import 'package:sixam_mart/common/widgets/menu_drawer.dart';
@@ -329,44 +328,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                           : 70,
                                   color: Theme.of(context).colorScheme.surface,
                                   child: Row(children: [
-                                    (splashController.module != null &&
-                                            splashController
-                                                    .configModel!.module ==
-                                                null &&
-                                            splashController.moduleList !=
-                                                null &&
-                                            splashController
-                                                    .moduleList!.length !=
-                                                1)
-                                        ? InkWell(
-                                            onTap: () {
-                                              splashController.removeModule();
-                                              Get.find<StoreController>()
-                                                  .resetStoreData();
-                                            },
-                                            child: Image.asset(
-                                                Images.moduleIcon,
-                                                height: 25,
-                                                width: 25,
-                                                color: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge!
-                                                    .color),
-                                          )
-                                        : const SizedBox(),
-                                    SizedBox(
-                                        width: (splashController.module !=
-                                                    null &&
-                                                splashController
-                                                        .configModel!.module ==
-                                                    null &&
-                                                splashController.moduleList !=
-                                                    null &&
-                                                splashController
-                                                        .moduleList!.length !=
-                                                    1)
-                                            ? Dimensions.paddingSizeSmall
-                                            : 0),
                                     Expanded(
                                         child: InkWell(
                                       onTap: () =>
