@@ -73,13 +73,13 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="app.tomatodeliverz.com" android:pathPrefix="/item-details" />
+                <data android:scheme="https" android:host="tomatodeliverz.com" android:pathPrefix="/app/item-details" />
             </intent-filter>
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="https" android:host="app.tomatodeliverz.com" android:pathPrefix="/store" />
+                <data android:scheme="https" android:host="tomatodeliverz.com" android:pathPrefix="/app/store" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

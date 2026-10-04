@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:sixam_mart/common/models/choose_us_model.dart';
 import 'package:sixam_mart/features/language/domain/models/language_model.dart';
@@ -12,10 +13,11 @@ class AppConstants {
   static const String fontFamily = 'Gilroy';
   static const bool payInWevView = false;
   static const int balanceInputLen = 10;
-  static const String webHostedUrl = 'https://app.tomatodeliverz.com';
+  static const String webHostedUrl = 'https://tomatodeliverz.com/app';
   static const bool useReactWebsite = false;
 
-  static const String baseUrl = 'http://93.127.195.169';
+  /// Web is served over HTTPS, so it must call the API over HTTPS to avoid mixed-content blocking.
+  static const String baseUrl = kIsWeb ? 'https://tomatodeliverz.com' : 'http://93.127.195.169';
   static const String categoryUri = '/api/v1/categories';
   static const String bannerUri = '/api/v1/banners';
   static const String storeItemUri = '/api/v1/items/latest';
