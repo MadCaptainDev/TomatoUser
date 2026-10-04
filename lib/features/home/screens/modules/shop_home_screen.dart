@@ -16,12 +16,17 @@ import 'package:sixam_mart/features/home/widgets/views/promotional_banner_view.d
 import 'package:sixam_mart/features/home/widgets/views/home_product_grid_view.dart';
 import 'package:sixam_mart/features/home/widgets/banner_view.dart';
 import 'package:sixam_mart/features/home/widgets/views/category_view.dart';
+import 'package:sixam_mart/features/home/widgets/views/home_vertical_category_view.dart';
+import 'package:sixam_mart/helper/module_helper.dart';
+import 'package:sixam_mart/helper/responsive_helper.dart';
 
 class ShopHomeScreen extends StatelessWidget {
   const ShopHomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final bool useVerticalCategories = !ResponsiveHelper.isDesktop(context) && ModuleHelper.isVerticalCategoryLayout();
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
       Container(
@@ -42,7 +47,7 @@ class ShopHomeScreen extends StatelessWidget {
         ),
       ),
 
-      const CategoryView(),
+      useVerticalCategories ? const HomeVerticalCategoryView() : const CategoryView(),
       const HomeProductGridView(isFood: false, isShop: true),
       const FlashSaleViewWidget(),
       const MiddleSectionBannerView(),

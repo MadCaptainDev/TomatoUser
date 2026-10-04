@@ -35,13 +35,20 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
   final ScrollController storeScrollController = ScrollController();
   TabController? _tabController;
   final scaffoldKey = GlobalKey<ScaffoldState>();
+  late String? _categoryID;
+  late String _categoryName;
 
   @override
   void initState() {
     super.initState();
+    _categoryID = widget.categoryID;
+    _categoryName = widget.categoryName;
 
     _tabController = TabController(length: 2, initialIndex: 0, vsync: this);
-    Get.find<CategoryController>().getSubCategoryList(widget.categoryID);
+    Get.find<CategoryController>().getSubCategoryList(_categoryID);
+    if (Get.find<CategoryController>().categoryList == null) {
+      Get.find<CategoryController>().getCategoryList(false);
+    }
     scrollController.addListener(() {
       if (scrollController.position.pixels ==
               scrollController.position.maxScrollExtent &&
@@ -55,7 +62,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
           Get.find<CategoryController>().showBottomLoader();
           Get.find<CategoryController>().getCategoryItemList(
             Get.find<CategoryController>().subCategoryIndex == 0
-                ? widget.categoryID
+                ? _categoryID
                 : Get.find<CategoryController>()
                     .subCategoryList![
                         Get.find<CategoryController>().subCategoryIndex]
@@ -82,7 +89,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
           Get.find<CategoryController>().showBottomLoader();
           Get.find<CategoryController>().getCategoryStoreList(
             Get.find<CategoryController>().subCategoryIndex == 0
-                ? widget.categoryID
+                ? _categoryID
                 : Get.find<CategoryController>()
                     .subCategoryList![
                         Get.find<CategoryController>().subCategoryIndex]
@@ -95,6 +102,25 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
         }
       }
     });
+  }
+
+  void _switchCategory(CategoryModel category) {
+    if (category.id.toString() == _categoryID) {
+      return;
+    }
+    setState(() {
+      _categoryID = category.id.toString();
+      _categoryName = category.name ?? '';
+    });
+    final CategoryController catController = Get.find<CategoryController>();
+    if (catController.isStore) {
+      _tabController!.animateTo(0);
+      catController.setRestaurant(false);
+    }
+    catController.getSubCategoryList(_categoryID);
+    if (scrollController.hasClients) {
+      scrollController.jumpTo(0);
+    }
   }
 
   @override
@@ -123,11 +149,22 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
         }
       }
 
-      final module = ModuleHelper.getModule() ?? ModuleHelper.getCacheModule();
       final bool isVerticalLayout = !ResponsiveHelper.isDesktop(context) &&
-          module?.categoryLayout == 'vertical';
-      final bool useTwoColumnItems = !ResponsiveHelper.isDesktop(context) &&
-          (isVerticalLayout || module?.categoryLayout != 'vertical');
+          ModuleHelper.isVerticalCategoryLayout();
+      final bool useTwoColumnItems = !ResponsiveHelper.isDesktop(context);
+      final bool hasSubCategories = catController.subCategoryList != null &&
+          catController.subCategoryList!.length > 1;
+      final List<CategoryModel>? topCategories = catController.categoryList;
+      final bool railShowsTopCategories = isVerticalLayout &&
+          !hasSubCategories &&
+          topCategories != null &&
+          topCategories.isNotEmpty;
+      final List<CategoryModel> railCategories = railShowsTopCategories
+          ? topCategories
+          : (catController.subCategoryList ?? []);
+      final String? parentImage = topCategories
+          ?.firstWhereOrNull((c) => c.id.toString() == _categoryID)
+          ?.imageFullUrl;
 
       return PopScope(
         canPop: true,
@@ -156,7 +193,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                             catController.searchData(
                               query,
                               catController.subCategoryIndex == 0
-                                  ? widget.categoryID
+                                  ? _categoryID
                                   : catController
                                       .subCategoryList![
                                           catController.subCategoryIndex]
@@ -165,7 +202,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                               catController.type,
                             );
                           })
-                      : Text(widget.categoryName,
+                      : Text(_categoryName,
                           style: robotoRegular.copyWith(
                             fontSize: Dimensions.fontSizeLarge,
                             color: Theme.of(context).textTheme.bodyLarge!.color,
@@ -214,7 +251,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                           if (catController.isSearching) {
                             catController.searchData(
                               catController.subCategoryIndex == 0
-                                  ? widget.categoryID
+                                  ? _categoryID
                                   : catController
                                       .subCategoryList![
                                           catController.subCategoryIndex]
@@ -227,7 +264,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                             if (catController.isStore) {
                               catController.getCategoryStoreList(
                                 catController.subCategoryIndex == 0
-                                    ? widget.categoryID
+                                    ? _categoryID
                                     : catController
                                         .subCategoryList![
                                             catController.subCategoryIndex]
@@ -240,7 +277,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                             } else {
                               catController.getCategoryItemList(
                                 catController.subCategoryIndex == 0
-                                    ? widget.categoryID
+                                    ? _categoryID
                                     : catController
                                         .subCategoryList![
                                             catController.subCategoryIndex]
@@ -282,7 +319,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                         itemBuilder: (context, index) {
                           return InkWell(
                             onTap: () => catController.setSubCategoryIndex(
-                                index, widget.categoryID),
+                                index, _categoryID),
                             child: Container(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: Dimensions.paddingSizeSmall,
@@ -363,7 +400,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                         catController.searchData(
                           catController.searchText,
                           catController.subCategoryIndex == 0
-                              ? widget.categoryID
+                              ? _categoryID
                               : catController
                                   .subCategoryList![
                                       catController.subCategoryIndex]
@@ -375,7 +412,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                         if (_tabController!.index == 1) {
                           catController.getCategoryStoreList(
                             catController.subCategoryIndex == 0
-                                ? widget.categoryID
+                                ? _categoryID
                                 : catController
                                     .subCategoryList![
                                         catController.subCategoryIndex]
@@ -388,7 +425,7 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                         } else {
                           catController.getCategoryItemList(
                             catController.subCategoryIndex == 0
-                                ? widget.categoryID
+                                ? _categoryID
                                 : catController
                                     .subCategoryList![
                                         catController.subCategoryIndex]
@@ -414,23 +451,38 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Container(
-                                width: 88,
-                                color: Theme.of(context).cardColor,
+                                width: 86,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).cardColor,
+                                  border: Border(
+                                      right: BorderSide(
+                                          color: Theme.of(context)
+                                              .disabledColor
+                                              .withOpacity(0.15))),
+                                ),
                                 child: ListView.builder(
-                                  itemCount:
-                                      catController.subCategoryList!.length,
+                                  itemCount: railCategories.length,
                                   padding: const EdgeInsets.symmetric(
                                       vertical:
                                           Dimensions.paddingSizeExtraSmall),
                                   itemBuilder: (context, index) {
+                                    final CategoryModel category =
+                                        railCategories[index];
                                     return _VerticalSubCategoryTile(
-                                      category: catController
-                                          .subCategoryList![index],
-                                      selected: index ==
-                                          catController.subCategoryIndex,
-                                      onTap: () =>
-                                          catController.setSubCategoryIndex(
-                                              index, widget.categoryID),
+                                      category: category,
+                                      fallbackImage:
+                                          !railShowsTopCategories && index == 0
+                                              ? parentImage
+                                              : null,
+                                      selected: railShowsTopCategories
+                                          ? category.id.toString() ==
+                                              _categoryID
+                                          : index ==
+                                              catController.subCategoryIndex,
+                                      onTap: () => railShowsTopCategories
+                                          ? _switchCategory(category)
+                                          : catController.setSubCategoryIndex(
+                                              index, _categoryID),
                                     );
                                   },
                                 ),
@@ -497,45 +549,49 @@ class CategoryItemScreenState extends State<CategoryItemScreen>
 
 class _VerticalSubCategoryTile extends StatelessWidget {
   final CategoryModel category;
+  final String? fallbackImage;
   final bool selected;
   final VoidCallback onTap;
   const _VerticalSubCategoryTile({
     required this.category,
     required this.selected,
     required this.onTap,
+    this.fallbackImage,
   });
 
   @override
   Widget build(BuildContext context) {
+    final Color primary = Theme.of(context).primaryColor;
     return InkWell(
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: Dimensions.paddingSizeExtraSmall,
-          vertical: Dimensions.paddingSizeExtraSmall,
-        ),
         padding: const EdgeInsets.symmetric(
           vertical: Dimensions.paddingSizeSmall,
           horizontal: Dimensions.paddingSizeExtraSmall,
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? Theme.of(context).primaryColor.withOpacity(0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
-          border: selected
-              ? Border.all(
-                  color: Theme.of(context).primaryColor.withOpacity(0.35))
-              : null,
+          color: selected ? primary.withOpacity(0.08) : Colors.transparent,
+          border: Border(
+            right: BorderSide(
+              color: selected ? primary : Colors.transparent,
+              width: 3,
+            ),
+          ),
         ),
         child: Column(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(Dimensions.radiusSmall),
+            Container(
+              height: 52,
+              width: 52,
+              decoration: BoxDecoration(
+                color: Theme.of(context).disabledColor.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(Dimensions.radiusDefault),
+              ),
+              clipBehavior: Clip.antiAlias,
               child: CustomImage(
-                image: category.imageFullUrl ?? '',
-                height: 44,
-                width: 44,
+                image: category.imageFullUrl ?? fallbackImage ?? '',
+                height: 52,
+                width: 52,
                 fit: BoxFit.cover,
                 placeholder: Images.placeholder,
               ),
