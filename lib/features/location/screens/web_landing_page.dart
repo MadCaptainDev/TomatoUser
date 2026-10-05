@@ -103,9 +103,12 @@ class _WebLandingPageState extends State<WebLandingPage> {
                     right: _isRtl! ? const Radius.circular(0) : const Radius.circular(Dimensions.radiusDefault),
                     left: _isRtl! ? const Radius.circular(Dimensions.radiusDefault) : const Radius.circular(0),
                   ),
-                  child: CustomImage(
-                    image: '${splashController.landingModel != null ? splashController.landingModel!.fixedHeaderImageFullUrl : ''}',
-                    height: 270, fit: BoxFit.cover,
+                  child: ColoredBox(
+                    color: const Color(0xFFE43853),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+                      child: Image.asset(Images.logo, fit: BoxFit.contain),
+                    ),
                   ),
                 ))),
               ]),
@@ -452,10 +455,7 @@ class _WebLandingPageState extends State<WebLandingPage> {
 
             splashController.landingModel != null && (splashController.landingModel!.downloadUserAppLinks!.playstoreUrlStatus == '1' || splashController.landingModel!.downloadUserAppLinks!.appleStoreUrlStatus == '1')
             ? Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-              CustomImage(
-                image: '${splashController.landingModel!.downloadUserAppImageFullUrl}',
-                width: 500,
-              ),
+              Image.asset(Images.logo, width: 280, fit: BoxFit.contain),
               Column(children: [
                 Text(
                   splashController.landingModel!.downloadUserAppTitle ?? '', textAlign: TextAlign.center,
